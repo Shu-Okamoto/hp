@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import MikawaAPI from "../lib/mock-api";
+import MikawaAPI from "../lib/api";
 
 // ── Hook: live store ────────────────────────────────────────
 function useStore() {

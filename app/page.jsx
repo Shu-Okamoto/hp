@@ -50,8 +50,10 @@ export default function Page() {
           </button>
         </div>
         <div className="impl-bar-meta">
-          <a className="impl-bar-link" href="/wireframes">ワイヤーフレーム</a>
-          <span className="impl-pill" style={{ marginLeft: 8 }}>localStorage 連動</span>
+          {process.env.NEXT_PUBLIC_VERCEL_ENV !== "production" && (
+            <a className="impl-bar-link" href="/wireframes">ワイヤーフレーム</a>
+          )}
+          <span className="impl-pill">localStorage 連動</span>
         </div>
       </header>
       <div className="impl-stage">

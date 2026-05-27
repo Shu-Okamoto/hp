@@ -1,16 +1,13 @@
 "use client";
 /**
- * Mock API layer for さとの味みかわ.
+ * Local store — the backbone of the prototype.
  *
- * Stand-in for Shopify Storefront, Instagram Basic Display, and LINE Messaging
- * during the prototype phase. Writes go to localStorage and fire a
- * `mikawa:store-changed` CustomEvent so subscribers can re-render live.
+ * Persists state to localStorage and dispatches `mikawa:store-changed`
+ * CustomEvents so subscribers re-render. All service modules read & write
+ * through `getState()` / `save()`.
  *
- * In production, swap each `MikawaAPI.*` call for the matching real-API call —
- * the response shapes are intentionally close to the real services.
- *
- * SSR-safe: during server render, returns seed data without touching
- * localStorage or window. Client takes over on hydration.
+ * SSR-safe: during server render, `getState()` returns seed data without
+ * touching `localStorage` or `window`.
  */
 
 const STORAGE_KEY = "mikawa:store:v1";
@@ -19,7 +16,7 @@ const CHANNEL = "mikawa:store-changed";
 const isClient = () => typeof window !== "undefined";
 const today = () => new Date().toISOString().slice(0, 10);
 
-const seed = () => ({
+export const seed = () => ({
   meta: {
     version: 1,
     lastSync: { shopify: today(), instagram: today(), line: today() },
@@ -69,138 +66,50 @@ function load() {
     if (!parsed.meta || parsed.meta.version !== 1) return seed();
     return parsed;
   } catch (e) {
-    console.warn("[mock-api] failed to load store, reseeding", e);
+    console.warn("[store] failed to load, reseeding", e);
     return seed();
   }
 }
 
-let state = null;
-const ensure = () => {
-  if (state === null) state = load();
-  return state;
-};
+let _state = null;
+export function getRaw() {
+  if (_state === null) _state = load();
+  return _state;
+}
 
-function save(next) {
-  state = next;
+export function getState() {
+  return JSON.parse(JSON.stringify(getRaw()));
+}
+
+export function save(next) {
+  _state = next;
   if (!isClient()) return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    window.dispatchEvent(new CustomEvent(CHANNEL, { detail: state }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+    window.dispatchEvent(new CustomEvent(CHANNEL, { detail: _state }));
   } catch (e) {
-    console.warn("[mock-api] save failed", e);
+    console.warn("[store] save failed", e);
   }
 }
 
-const uid = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export function reset() {
+  _state = seed();
+  save(_state);
+  return _state;
+}
 
-export const MikawaAPI = {
-  getState: () => JSON.parse(JSON.stringify(ensure())),
-  reset: () => { state = seed(); save(state); return state; },
-  on(callback) {
-    if (!isClient()) return () => {};
-    const fn = (e) => callback(e.detail);
-    const storageFn = () => { state = load(); callback(state); };
-    window.addEventListener(CHANNEL, fn);
-    window.addEventListener("storage", storageFn);
-    return () => {
-      window.removeEventListener(CHANNEL, fn);
-      window.removeEventListener("storage", storageFn);
-    };
-  },
+export function on(callback) {
+  if (!isClient()) return () => {};
+  const fn = (e) => callback(e.detail);
+  const storageFn = () => { _state = load(); callback(_state); };
+  window.addEventListener(CHANNEL, fn);
+  window.addEventListener("storage", storageFn);
+  return () => {
+    window.removeEventListener(CHANNEL, fn);
+    window.removeEventListener("storage", storageFn);
+  };
+}
 
-  shopify: {
-    async listProducts() { await sleep(80); return ensure().products.slice(); },
-    async upsertProduct(p) {
-      await sleep(120);
-      const s = ensure();
-      const idx = s.products.findIndex((x) => x.id === p.id);
-      if (idx >= 0) s.products[idx] = { ...s.products[idx], ...p };
-      else s.products.unshift({ id: uid("p"), ...p });
-      s.connections.shopify.lastSync = today();
-      save(s);
-      return p;
-    },
-    async deleteProduct(id) {
-      const s = ensure();
-      s.products = s.products.filter((p) => p.id !== id);
-      save(s);
-    },
-  },
-
-  prices: {
-    async list() { return ensure().dailyPrices.slice(); },
-    async update(id, patch) {
-      const s = ensure();
-      const idx = s.dailyPrices.findIndex((p) => p.id === id);
-      if (idx >= 0) s.dailyPrices[idx] = { ...s.dailyPrices[idx], ...patch };
-      save(s);
-    },
-    async setFeatured(id) {
-      const s = ensure();
-      s.dailyPrices = s.dailyPrices.map((p) => ({ ...p, featured: p.id === id ? true : p.featured }));
-      save(s);
-    },
-    async create(item) {
-      const s = ensure();
-      s.dailyPrices.unshift({ id: uid("v"), visible: true, featured: false, ...item });
-      save(s);
-    },
-    async remove(id) {
-      const s = ensure();
-      s.dailyPrices = s.dailyPrices.filter((p) => p.id !== id);
-      save(s);
-    },
-  },
-
-  news: {
-    async list({ source } = {}) {
-      return ensure().posts.filter((p) => !source || source === "all" || p.source === source).slice();
-    },
-    async post({ title, body, emoji, channels, source }) {
-      const s = ensure();
-      const post = {
-        id: uid("n"),
-        date: today(),
-        title, body, emoji: emoji || "📣",
-        channels: channels || ["web"],
-        source: source || (channels && channels[0]) || "web",
-      };
-      s.posts.unshift(post);
-      if (channels?.includes("ig"))   s.connections.instagram.lastSync = today();
-      if (channels?.includes("line")) s.connections.line.lastSync = today();
-      save(s);
-      return post;
-    },
-    async remove(id) {
-      const s = ensure();
-      s.posts = s.posts.filter((p) => p.id !== id);
-      save(s);
-    },
-  },
-
-  shops: {
-    async list() { return ensure().shops.slice(); },
-  },
-
-  connections: {
-    async get() { return JSON.parse(JSON.stringify(ensure().connections)); },
-    async toggle(name, connected) {
-      const s = ensure();
-      if (s.connections[name]) {
-        s.connections[name].connected = connected;
-        save(s);
-      }
-    },
-    async sync(name) {
-      await sleep(400);
-      const s = ensure();
-      if (s.connections[name]) {
-        s.connections[name].lastSync = today();
-        save(s);
-      }
-    },
-  },
-};
-
-export default MikawaAPI;
+export const uid = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export const todayISO = today;

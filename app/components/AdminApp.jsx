@@ -12,7 +12,8 @@
  *   SnsStatus     — connection panel + manual sync
  */
 import { useState, useEffect, useMemo } from "react";
-import MikawaAPI from "../lib/mock-api";
+import MikawaAPI from "../lib/api";
+import * as Auth from "../lib/auth";
 
 function useAdminStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
@@ -20,23 +21,43 @@ function useAdminStore() {
   return s;
 }
 
+function useSession() {
+  const [s, setS] = useState(null);
+  useEffect(() => {
+    setS(Auth.getSession());
+    return Auth.on(setS);
+  }, []);
+  return s;
+}
+
 const fmt = (n) => "¥" + n.toLocaleString();
 const yenToInt = (s) => parseInt(String(s).replace(/[^\d]/g, ""), 10) || 0;
 
 // ── Sidebar ─────────────────────────────────────────────────
-const AdminSidebar = ({ current, onNav }) => {
-  const items = [
-    { key: "post",      icon: "✍︎", label: "クイック投稿" },
-    { key: "prices",    icon: "₸",  label: "価格管理" },
-    { key: "news",      icon: "📣", label: "お知らせ管理" },
-    { key: "products",  icon: "🥬", label: "商品管理" },
-    { key: "sns",       icon: "⇆",  label: "SNS連携状況" },
-  ];
+const ALL_ITEMS = [
+  { key: "post",      icon: "✍︎", label: "クイック投稿" },
+  { key: "prices",    icon: "₸",  label: "価格管理" },
+  { key: "news",      icon: "📣", label: "お知らせ管理" },
+  { key: "products",  icon: "🥬", label: "商品管理" },
+  { key: "sns",       icon: "⇆",  label: "SNS連携状況" },
+];
+
+const AdminSidebar = ({ current, onNav, session }) => {
+  const allowed = Auth.pagesFor(session?.role);
+  const items = ALL_ITEMS.filter((i) => allowed.includes(i.key));
+  const isOwner = session?.role === "owner";
   return (
     <aside className="adm-side">
       <div className="adm-side-brand">
         <div className="mark">里</div>
         <div className="name">さとの味みかわ<small>ADMIN CONSOLE</small></div>
+      </div>
+      <div className="adm-side-user">
+        <div className="who">
+          <span className={`role-badge role-${session?.role}`}>{session?.role === "owner" ? "OWNER" : "STAFF"}</span>
+          <span className="name">{session?.name}</span>
+        </div>
+        <button className="adm-side-logout" onClick={() => Auth.logout()}>ログアウト</button>
       </div>
       <nav className="adm-side-nav">
         {items.map((i) => (
@@ -48,14 +69,63 @@ const AdminSidebar = ({ current, onNav }) => {
           </button>
         ))}
       </nav>
-      <div className="adm-side-foot">
-        <button className="adm-side-reset" onClick={() => {
-          if (confirm("初期データに戻しますか？")) MikawaAPI.reset();
-        }}>初期データに戻す</button>
-      </div>
+      {isOwner && (
+        <div className="adm-side-foot">
+          <button className="adm-side-reset" onClick={() => {
+            if (confirm("初期データに戻しますか？")) MikawaAPI.reset();
+          }}>初期データに戻す</button>
+        </div>
+      )}
     </aside>
   );
 };
+
+// ── Login screen ────────────────────────────────────────────
+function AdminLogin() {
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState(null);
+  const submit = (e) => {
+    e?.preventDefault();
+    const res = Auth.login(user.trim(), pass);
+    if (!res.ok) setError(res.error);
+  };
+  const quick = (u) => { Auth.login(u, u); };
+  return (
+    <div className="adm-login">
+      <form className="adm-login-card" onSubmit={submit}>
+        <div className="adm-login-brand">
+          <div className="mark">里</div>
+          <div className="name">さとの味みかわ<small>ADMIN CONSOLE</small></div>
+        </div>
+        <h2 className="t-mincho">管理画面にログイン</h2>
+        <label className="adm-field">
+          <span>ユーザー名</span>
+          <input className="adm-input" autoFocus value={user}
+            onChange={(e) => setUser(e.target.value)} placeholder="admin / staff" />
+        </label>
+        <label className="adm-field">
+          <span>パスワード</span>
+          <input className="adm-input" type="password" value={pass}
+            onChange={(e) => setPass(e.target.value)} />
+        </label>
+        {error && <div className="adm-status adm-status-err">{error}</div>}
+        <button className="adm-btn adm-btn-primary adm-login-submit" type="submit">ログイン</button>
+        <div className="adm-login-hint">
+          <p className="t-label">DEMO ACCOUNTS</p>
+          <div className="adm-login-quick">
+            <button type="button" onClick={() => quick("admin")} className="adm-login-quickbtn">
+              <b>admin</b> / admin <small>オーナー (全機能)</small>
+            </button>
+            <button type="button" onClick={() => quick("staff")} className="adm-login-quickbtn">
+              <b>staff</b> / staff <small>スタッフ (投稿・価格のみ)</small>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 // ── Page wrapper ────────────────────────────────────────────
 const AdminPage = ({ title, lead, action, children }) => (
@@ -405,7 +475,18 @@ function SnsStatus() {
 
 // ── Admin root ──────────────────────────────────────────────
 function AdminApp() {
+  const session = useSession();
   const [route, setRoute] = useState("post");
+
+  // Clamp the route to what the current role can access. Falls back to
+  // the first allowed page if the user landed on something forbidden
+  // (e.g. staff logged out of an owner-only page).
+  useEffect(() => {
+    if (!session) return;
+    const allowed = Auth.pagesFor(session.role);
+    if (!allowed.includes(route)) setRoute(allowed[0] || "post");
+  }, [session, route]);
+
   const Page = useMemo(() => {
     switch (route) {
       case "prices":   return <PriceManager />;
@@ -415,9 +496,12 @@ function AdminApp() {
       default:         return <QuickPost />;
     }
   }, [route]);
+
+  if (!session) return <AdminLogin />;
+
   return (
     <div className="adm-root">
-      <AdminSidebar current={route} onNav={setRoute} />
+      <AdminSidebar current={route} onNav={setRoute} session={session} />
       {Page}
     </div>
   );
