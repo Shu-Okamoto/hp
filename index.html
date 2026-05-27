@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>さとの味みかわ — ワイヤーフレーム</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kosugi+Maru&family=Noto+Sans+JP:wght@400;500;600;700&family=Shippori+Mincho:wght@400;500;600&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="hifi.css" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  html, body, #root { height: 100%; margin: 0; }
+  body { background: #f1ede2; }
+  /* Make accent toggle work via data attribute on root */
+  [data-accent="off"] .accent-only { display: none !important; }
+  [data-accent="on"] .mono-only { display: none !important; }
+  [data-accent="on"] { /* accent on globally */ }
+
+  /* Section header sketchy style on canvas */
+  .canvas-sec-title {
+    font-family: "Caveat", cursive;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .canvas-sec-sub {
+    font-family: "Kosugi Maru", sans-serif;
+    font-size: 13px;
+    color: #4a4a4a;
+    margin-top: 4px;
+  }
+
+  /* Frame layout: phone + annotations side-by-side */
+  .frame-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 30px 40px;
+    width: 720px;
+  }
+  .frame-row .phone-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .frame-row .annot-col {
+    flex: 1;
+    padding-top: 50px;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding-left: 30px;
+  }
+
+  .variation-tag {
+    position: absolute;
+    top: -22px;
+    left: 0;
+    font-family: "Caveat", cursive;
+    font-size: 18px;
+    font-weight: 700;
+    color: #c8451f;
+    letter-spacing: 0.04em;
+  }
+
+  /* Annotation pin numbers */
+  .annot.n1::before { content: "1"; color: var(--pen); display: flex; align-items: center; justify-content: center; font-family: Caveat; font-weight: 700; font-size: 12px; line-height: 1; }
+  .annot.n2::before { content: "2"; color: var(--pen); display: flex; align-items: center; justify-content: center; font-family: Caveat; font-weight: 700; font-size: 12px; line-height: 1; }
+  .annot.n3::before { content: "3"; color: var(--pen); display: flex; align-items: center; justify-content: center; font-family: Caveat; font-weight: 700; font-size: 12px; line-height: 1; }
+
+  .legend {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    background: rgba(255,255,255,0.92);
+    border: 1.5px solid #1a1a1a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: "Caveat", cursive;
+    font-size: 13px;
+    z-index: 1500;
+    pointer-events: none;
+    line-height: 1.5;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.08);
+  }
+  .legend strong { display: block; font-size: 14px; margin-bottom: 4px; color: #c8451f; }
+  .legend .row { display: flex; align-items: center; gap: 6px; color: #4a4a4a; }
+  .legend .pin-dot {
+    width: 14px; height: 14px; border: 2px solid #c8451f; border-radius: 50%;
+    background: white;
+  }
+</style>
+</head>
+<body data-accent="off">
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#faf5ec"/>
+  <rect x="60" y="40" width="80" height="130" rx="14" fill="none" stroke="#2d5a3d" stroke-width="3"/>
+  <line x1="70" y1="70" x2="130" y2="70" stroke="#c8703a" stroke-width="3" stroke-linecap="round"/>
+  <line x1="70" y1="85" x2="120" y2="85" stroke="#2d5a3d" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="78" cy="115" r="8" fill="none" stroke="#c8703a" stroke-width="2"/>
+  <circle cx="100" cy="115" r="8" fill="none" stroke="#c8703a" stroke-width="2"/>
+  <circle cx="122" cy="115" r="8" fill="none" stroke="#c8703a" stroke-width="2"/>
+  <text x="100" y="190" text-anchor="middle" font-family="Caveat,cursive" font-size="14" fill="#2d5a3d">Wireframes</text>
+</svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="phone-content.jsx"></script>
+<script type="text/babel" src="hifi-c.jsx"></script>
+<script type="text/babel" src="admin-screens.jsx"></script>
+<script type="text/babel" src="docs-screens.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

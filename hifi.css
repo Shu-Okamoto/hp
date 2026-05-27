@@ -1,0 +1,627 @@
+/* Hi-fi C-page styles — brand palette */
+:root {
+  --beige-base: #faf5ec;
+  --beige-mid: #f2e9d8;
+  --beige-deep: #e5d9c0;
+  --green: #2d5a3d;
+  --green-mid: #3d7a52;
+  --green-light: #4e9468;
+  --orange: #c8703a;
+  --orange-light: #e6a870;
+  --orange-pale: #f2c490;
+  --text: #2d4030;
+  --text-sub: #8a7a60;
+}
+
+.hifi-body {
+  margin: 0;
+  background: #d9d2c2;
+  color: var(--text);
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+  font-feature-settings: "palt" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hifi-mincho {
+  font-family: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  font-weight: 500;
+}
+
+.hifi-en {
+  font-family: "Cormorant Garamond", "Shippori Mincho", serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Hi-fi phone */
+.hifi-phone {
+  width: 390px;
+  height: 844px;
+  border-radius: 44px;
+  background: var(--beige-base);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 11px #1a1a1a,
+    0 0 0 12px #2a2a2a,
+    20px 20px 0 rgba(0,0,0,0.10),
+    0 30px 60px rgba(0,0,0,0.15);
+}
+.hifi-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 122px;
+  height: 30px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  z-index: 20;
+}
+.hifi-status {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 28px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  z-index: 21;
+}
+.hifi-status .right { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+.hifi-screen {
+  position: absolute;
+  inset: 0;
+  padding-top: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.hifi-screen::-webkit-scrollbar { width: 0; }
+
+/* App bar */
+.h-appbar {
+  height: 52px;
+  background: var(--beige-base);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--beige-deep);
+}
+.h-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.h-logo .mark {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Shippori Mincho", serif;
+  font-size: 14px;
+  color: var(--green);
+}
+.h-logo .name {
+  font-family: "Shippori Mincho", serif;
+  font-size: 15px;
+  color: var(--green);
+  letter-spacing: 0.02em;
+}
+.h-logo .name small {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-sub);
+  margin-top: -2px;
+}
+.h-icons { display: flex; gap: 14px; color: var(--green); }
+.h-icons svg { width: 22px; height: 22px; }
+
+/* Story section */
+.h-story-head {
+  padding: 18px 18px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.h-story-head .label {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--orange);
+  text-transform: uppercase;
+}
+.h-story-head h2 {
+  font-family: "Shippori Mincho", serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--green);
+  margin: 4px 0 0;
+}
+.h-story-head .date {
+  font-size: 10px;
+  color: var(--text-sub);
+}
+
+.h-stories {
+  display: flex;
+  gap: 14px;
+  padding: 6px 18px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.h-stories::-webkit-scrollbar { display: none; }
+.h-story {
+  flex-shrink: 0;
+  width: 72px;
+  text-align: center;
+}
+.h-story-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 60%, var(--orange-pale) 100%);
+  position: relative;
+}
+.h-story-ring.viewed {
+  background: var(--beige-deep);
+}
+.h-story-ring .inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--beige-base);
+  padding: 3px;
+}
+.h-story-ring .veg {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: var(--beige-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+}
+.h-story .name {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 500;
+}
+.h-story .price {
+  font-size: 11px;
+  color: var(--orange);
+  font-weight: 600;
+  font-family: "Cormorant Garamond", "Noto Sans JP", serif;
+}
+
+/* Hero (compact below stories) */
+.h-hero {
+  padding: 14px 22px 28px;
+  position: relative;
+}
+.h-hero .ja-en {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--green-mid);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.h-hero h1 {
+  font-family: "Shippori Mincho", serif;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--green);
+  margin: 0 0 10px;
+  letter-spacing: 0.02em;
+}
+.h-hero h1 .accent { color: var(--orange); }
+.h-hero p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Concept + product unified section */
+.h-section {
+  margin-top: 8px;
+  padding: 32px 18px 36px;
+  background: var(--beige-mid);
+  position: relative;
+}
+.h-section.deep { background: var(--green); color: var(--beige-base); }
+.h-section.deep .h-sec-label { color: var(--orange-light); }
+.h-section.deep .h-sec-title { color: var(--beige-base); }
+
+.h-sec-label {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--orange);
+  text-transform: uppercase;
+}
+.h-sec-title {
+  font-family: "Shippori Mincho", serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--green);
+  margin: 4px 0 4px;
+  letter-spacing: 0.02em;
+}
+.h-sec-lead {
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  margin: 0 0 18px;
+}
+.h-section.deep .h-sec-lead { color: rgba(250,245,236,0.75); }
+
+/* Product+concept unified card scroller */
+.h-pcards {
+  display: flex;
+  gap: 12px;
+  margin: 0 -18px;
+  padding: 4px 18px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.h-pcards::-webkit-scrollbar { display: none; }
+.h-pcard {
+  flex-shrink: 0;
+  width: 230px;
+  background: var(--beige-base);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(45,64,48,0.05);
+}
+.h-pcard .img {
+  height: 160px;
+  background: var(--beige-deep);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+  background-image:
+    linear-gradient(135deg, rgba(45,90,61,0.0), rgba(45,90,61,0.18)),
+    repeating-linear-gradient(45deg, transparent 0 8px, rgba(45,64,48,0.04) 8px 9px);
+}
+.h-pcard .img.green { background-color: var(--green-light); }
+.h-pcard .img.orange { background-color: var(--orange-light); }
+.h-pcard .tag-pill {
+  background: rgba(255,255,255,0.92);
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 12px;
+  letter-spacing: 0.04em;
+}
+.h-pcard .body { padding: 14px 14px 16px; }
+.h-pcard .body .ja-label {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--text-sub);
+  text-transform: uppercase;
+}
+.h-pcard .body h4 {
+  font-family: "Shippori Mincho", serif;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 4px 0 6px;
+  color: var(--green);
+  letter-spacing: 0.02em;
+}
+.h-pcard .body p {
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0 0 10px;
+  min-height: 35px;
+}
+.h-pcard .body .price {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  color: var(--orange);
+  font-weight: 600;
+}
+.h-pcard .body .price small {
+  font-size: 10px;
+  font-family: "Noto Sans JP", sans-serif;
+  color: var(--text-sub);
+  margin-left: 4px;
+}
+
+/* News */
+.h-news-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--beige-deep);
+  align-items: flex-start;
+}
+.h-news-item:last-child { border-bottom: none; }
+.h-news-thumb {
+  width: 64px; height: 64px; flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--beige-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  color: var(--green);
+}
+.h-news-meta {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 10px; color: var(--text-sub);
+}
+.h-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.06em;
+}
+.h-tag.ig { background: rgba(200,112,58,0.14); color: var(--orange); }
+.h-tag.line { background: rgba(6,199,85,0.12); color: #06a448; }
+.h-tag.event { background: rgba(45,90,61,0.12); color: var(--green); }
+.h-tag.news { background: rgba(138,122,96,0.14); color: var(--text-sub); }
+.h-news-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 4px 0 0;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/* Agri block */
+.h-agri {
+  background: var(--green);
+  margin: 0 -18px;
+  padding: 28px 22px;
+  color: var(--beige-base);
+  position: relative;
+  overflow: hidden;
+}
+.h-agri .h-sec-label { color: var(--orange-light); }
+.h-agri h3 {
+  font-family: "Shippori Mincho", serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 4px 0 8px;
+  letter-spacing: 0.02em;
+}
+.h-agri p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(250,245,236,0.85);
+  margin: 0 0 14px;
+}
+.h-agri .photo {
+  height: 140px;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(78,148,104,0.5), rgba(45,90,61,0.5)),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 6px, transparent 6px 12px);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(250,245,236,0.5);
+  font-size: 11px;
+  margin-bottom: 14px;
+}
+.h-agri .link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  color: var(--orange-light);
+  font-weight: 500;
+}
+
+/* Shops */
+.h-map {
+  height: 220px;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(0deg, rgba(45,90,61,0.06) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg, rgba(45,90,61,0.06) 0 1px, transparent 1px 22px),
+    var(--beige-base);
+  position: relative;
+  border: 1px solid var(--beige-deep);
+  margin-bottom: 14px;
+}
+.h-map .pin {
+  position: absolute;
+  width: 28px; height: 28px;
+  background: var(--orange);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.h-map .pin span { transform: rotate(45deg); font-weight: 700; }
+
+/* Sticky bottom price bar */
+.h-price-bar {
+  position: absolute;
+  bottom: 78px;
+  left: 12px;
+  right: 12px;
+  background: var(--green);
+  color: var(--beige-base);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 8;
+  box-shadow: 0 6px 20px rgba(45,64,48,0.25);
+}
+.h-price-bar .ico {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.h-price-bar .label {
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.h-price-bar .label small { color: var(--orange-light); display: block; font-size: 9px; letter-spacing: 0.1em; }
+.h-price-bar .arrow { color: var(--orange-light); font-size: 16px; }
+
+/* Bottom nav */
+.h-bnav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 78px;
+  background: var(--beige-base);
+  border-top: 1px solid var(--beige-deep);
+  display: flex;
+  padding-bottom: 14px;
+  z-index: 9;
+}
+.h-bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+.h-bnav-item .ico {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.h-bnav-item.active { color: var(--orange); }
+.h-bnav-item.active .ico circle,
+.h-bnav-item.active .ico path { stroke: var(--orange); }
+
+/* Footer */
+.h-footer {
+  background: var(--green);
+  color: rgba(250,245,236,0.85);
+  padding: 32px 22px 20px;
+  margin: 0 -18px -36px;
+}
+.h-footer .f-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px;
+}
+.h-footer .f-logo .mark {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--orange-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Shippori Mincho", serif;
+  color: var(--orange-light);
+  font-size: 16px;
+}
+.h-footer .f-logo .name {
+  font-family: "Shippori Mincho", serif;
+  font-size: 16px;
+  color: var(--beige-base);
+}
+.h-footer .f-logo .name small {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--orange-light);
+  margin-top: 2px;
+}
+.h-footer .f-tagline {
+  font-family: "Shippori Mincho", serif;
+  font-size: 14px;
+  color: var(--beige-base);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+.h-footer h5 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--orange-light);
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+.h-footer .f-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 14px;
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(250,245,236,0.15);
+}
+.h-footer ul { list-style: none; padding: 0; margin: 0; }
+.h-footer li {
+  font-size: 12px;
+  line-height: 1.9;
+  color: rgba(250,245,236,0.75);
+}
+.h-footer .f-shops {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(250,245,236,0.15);
+}
+.h-footer .f-shop {
+  margin-bottom: 14px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.h-footer .f-shop .name {
+  font-family: "Shippori Mincho", serif;
+  font-size: 13px;
+  color: var(--beige-base);
+  margin-bottom: 2px;
+}
+.h-footer .f-shop .meta {
+  color: rgba(250,245,236,0.6);
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.h-footer .f-shop .meta span:first-child { color: var(--orange-light); }
+.h-footer .f-sns {
+  display: flex; gap: 10px;
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(250,245,236,0.15);
+}
+.h-footer .f-sns a {
+  width: 38px; height: 38px;
+  border: 1px solid rgba(250,245,236,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--beige-base);
+}
+.h-footer .f-legal {
+  font-size: 10px;
+  color: rgba(250,245,236,0.5);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.h-footer .f-legal .copy {
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 0.1em;
+}
+
+/* Bottom-of-screen padding so content clears bnav */
+.h-bottom-pad { height: 100px; }

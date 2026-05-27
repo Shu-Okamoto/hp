@@ -1,0 +1,465 @@
+/* Lo-fi wireframe style */
+:root {
+  --paper: #fafaf7;
+  --ink: #1a1a1a;
+  --ink-2: #4a4a4a;
+  --ink-3: #8a8a8a;
+  --pen: #c8451f;
+  --pen-2: #e07a4f;
+  /* accent layer (toggleable) */
+  --accent-green: #2d5a3d;
+  --accent-green-mid: #3d7a52;
+  --accent-orange: #c8703a;
+  --accent-orange-light: #e6a870;
+  --accent-beige: #f2e9d8;
+  --accent-beige-2: #e5d9c0;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Kosugi Maru", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.handwriting {
+  font-family: "Caveat", "Kosugi Maru", cursive;
+  font-weight: 600;
+}
+
+/* Wireframe primitives */
+.wf {
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  border-radius: 4px;
+  position: relative;
+}
+.wf-dashed {
+  border-style: dashed;
+}
+.wf-thick {
+  border-width: 2.5px;
+}
+.wf-fill {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 6px,
+      rgba(26,26,26,0.12) 6px, rgba(26,26,26,0.12) 7px);
+}
+.wf-fill-dense {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 4px,
+      rgba(26,26,26,0.18) 4px, rgba(26,26,26,0.18) 5px);
+}
+.wf-fill-light {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 8px,
+      rgba(26,26,26,0.06) 8px, rgba(26,26,26,0.06) 9px);
+}
+.wf-x::before, .wf-x::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-bottom: 1px solid var(--ink-3);
+  transform-origin: center;
+}
+.wf-x::before { transform: translateY(-50%) rotate(-25deg); top: 50%; }
+.wf-x::after  { transform: translateY(-50%) rotate(25deg); top: 50%; }
+
+.wf-label {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-family: "Caveat", cursive;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.wf-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* "Squiggle" line — text placeholder */
+.line {
+  height: 6px;
+  background: var(--ink);
+  border-radius: 2px;
+  margin: 4px 0;
+  opacity: 0.7;
+}
+.line.thin { height: 3px; opacity: 0.55; }
+.line.thick { height: 9px; opacity: 0.85; }
+.line.short { width: 40%; }
+.line.med   { width: 65%; }
+.line.long  { width: 90%; }
+
+/* Annotations — red pen */
+.annot {
+  position: relative;
+  font-family: "Caveat", cursive;
+  font-size: 17px;
+  color: var(--pen);
+  line-height: 1.25;
+}
+.annot::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--pen);
+  border-radius: 50%;
+  background: var(--paper);
+  display: inline-block;
+}
+.annot small {
+  font-family: "Kosugi Maru", sans-serif;
+  font-size: 11px;
+  color: var(--ink-2);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Phone frame */
+.phone {
+  width: 390px;
+  height: 780px;
+  border: 2.5px solid var(--ink);
+  border-radius: 36px;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 6px 6px 0 rgba(26,26,26,0.08);
+}
+.phone-notch {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 22px;
+  background: var(--ink);
+  border-radius: 14px;
+  z-index: 5;
+}
+.phone-screen {
+  position: absolute;
+  inset: 0;
+  padding: 38px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+.phone-screen::-webkit-scrollbar { width: 4px; }
+.phone-screen::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
+
+/* Top app bar */
+.appbar {
+  height: 48px;
+  border-bottom: 1.5px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: var(--paper);
+}
+.appbar .logo {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  font-weight: 700;
+}
+.appbar .icons {
+  display: flex;
+  gap: 10px;
+  font-family: "Caveat", cursive;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* Bottom nav */
+.bnav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  border-top: 1.5px solid var(--ink);
+  background: var(--paper);
+  display: flex;
+  z-index: 4;
+}
+.bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: "Caveat", cursive;
+  font-size: 12px;
+  color: var(--ink-2);
+  border-right: 1px dashed var(--ink-3);
+}
+.bnav-item:last-child { border-right: none; }
+.bnav-item .ico {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+}
+.bnav-item.active { color: var(--pen); }
+.accent-on .bnav-item.active { color: var(--accent-orange); }
+
+/* Story ring */
+.stories {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  border-bottom: 1.5px dashed var(--ink-3);
+}
+.story {
+  flex-shrink: 0;
+  width: 64px;
+  text-align: center;
+  font-size: 10px;
+}
+.story-ring {
+  width: 60px;
+  height: 60px;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  margin: 0 auto 4px;
+  position: relative;
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 4px,
+      rgba(26,26,26,0.15) 4px, rgba(26,26,26,0.15) 5px);
+}
+.accent-on .story-ring {
+  border-color: var(--accent-orange);
+  border-style: dashed;
+}
+.story-ring.viewed {
+  border-color: var(--ink-3);
+  border-style: dotted;
+}
+
+/* CTA button */
+.cta {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  padding: 12px 14px;
+  text-align: center;
+  font-family: "Caveat", cursive;
+  font-size: 16px;
+  border-radius: 4px;
+  margin: 6px 14px;
+  position: relative;
+}
+.cta.primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.accent-on .cta.primary {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+}
+.accent-on .cta.secondary {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: var(--paper);
+}
+
+/* Section heading */
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 14px 8px;
+}
+.sec-head h3 {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+.sec-head .more {
+  font-family: "Caveat", cursive;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* H scroll row */
+.hscroll {
+  display: flex;
+  gap: 10px;
+  padding: 4px 14px 14px;
+  overflow-x: auto;
+}
+.hscroll-card {
+  flex-shrink: 0;
+  width: 140px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.hscroll-card .img {
+  height: 100px;
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 6px,
+      rgba(26,26,26,0.12) 6px, rgba(26,26,26,0.12) 7px);
+  border-bottom: 1px solid var(--ink);
+}
+.hscroll-card .body {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+.accent-on .hscroll-card .img { background: var(--accent-beige-2); }
+
+/* Notch helper for hero placeholder */
+.hero-img {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 8px,
+      rgba(26,26,26,0.12) 8px, rgba(26,26,26,0.12) 9px);
+  border-bottom: 1.5px solid var(--ink);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  color: var(--ink-2);
+}
+.accent-on .hero-img {
+  background:
+    linear-gradient(180deg, rgba(45,90,61,0.85) 0%, rgba(61,122,82,0.85) 100%),
+    repeating-linear-gradient(135deg,
+      transparent 0, transparent 8px,
+      rgba(255,255,255,0.08) 8px, rgba(255,255,255,0.08) 9px);
+  color: rgba(255,255,255,0.95);
+}
+
+/* News item */
+.news-item {
+  padding: 10px 14px;
+  border-bottom: 1px dashed var(--ink-3);
+  font-size: 12px;
+}
+.news-item .meta {
+  font-family: "Caveat", cursive;
+  font-size: 12px;
+  color: var(--ink-3);
+  display: flex;
+  gap: 8px;
+}
+.tag {
+  display: inline-block;
+  border: 1px solid var(--ink);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: "Kosugi Maru", sans-serif;
+}
+.accent-on .tag.tag-line { border-color: #06c755; color: #06c755; }
+.accent-on .tag.tag-ig { border-color: var(--accent-orange); color: var(--accent-orange); }
+.accent-on .tag.tag-event { border-color: var(--accent-green); color: var(--accent-green); }
+
+/* Spec note callout (in artboard, bottom) */
+.spec-callout {
+  background: var(--paper);
+  border: 1.5px dashed var(--pen);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 12px 14px 80px;
+  font-family: "Caveat", cursive;
+  font-size: 13px;
+  color: var(--pen);
+  line-height: 1.4;
+}
+.spec-callout strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+/* Annotation column */
+.annot-col {
+  width: 260px;
+  padding: 60px 0 60px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.annot-col .annot {
+  position: relative;
+}
+
+/* Pin marker on phone (numbered red circle) */
+.pin {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--pen);
+  border-radius: 50%;
+  background: var(--paper);
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+}
+
+/* When accents off, hide accent-only flair */
+.accent-off .accent-only { display: none !important; }
+.accent-on .mono-only { display: none !important; }
+
+/* Artboard inner wrapper */
+.artboard-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 30px 30px 30px 50px;
+  background: var(--paper);
+  min-height: 100%;
+}
+
+/* Page header on top of artboard */
+.ab-title {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: 22px;
+  position: absolute;
+  top: 20px;
+  left: 50px;
+  color: var(--ink);
+}
+.ab-subtitle {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  font-size: 12px;
+  color: var(--ink-2);
+  max-width: 600px;
+}
+
+/* Sketch arrow */
+.arrow-curve {
+  position: absolute;
+  pointer-events: none;
+}
