@@ -626,3 +626,47 @@
   font-size: var(--fs-xs); color: rgba(250,245,236,0.5);
 }
 .pub-footer-legal .copy { margin-left: auto; }
+
+/* ─────────────────────────────────────────────────────────
+   <Link> overrides — buttons-turned-anchors get default UA
+   link styling otherwise; reset color/decoration consistently.
+   ───────────────────────────────────────────────────────── */
+.pub-link-reset,
+.pub-topnav-item,
+.pub-bnav-item,
+.pub-link,
+.pub-story,
+.pub-pcard,
+.pub-pricecta,
+.pub-breadcrumb-link,
+.pub-news-item-link {
+  color: inherit;
+  text-decoration: none;
+}
+.pub-link-reset { display: inline-block; }
+.pub-topnav-item,
+.pub-bnav-item { cursor: pointer; }
+
+/* news list now wraps each item's body in a <Link>; let the link own
+   the flex layout so the li keeps the border-bottom rhythm. */
+.pub-news-item-link {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 14px 0;
+  outline-offset: 4px;
+}
+.pub-news-item {
+  padding: 0;
+  align-items: stretch;
+}
+.pub-news-item.is-clickable .pub-news-item-link:hover .title { color: var(--c-primary); }
+.pub-news-item-link:focus-visible {
+  outline: 2px solid var(--c-accent); outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Footer sitemap links — make them feel like links, not labels. */
+.pub-footer .col ul a {
+  color: inherit; text-decoration: none;
+  transition: color 0.15s;
+}
+.pub-footer .col ul a:hover { color: var(--c-orange-400); }

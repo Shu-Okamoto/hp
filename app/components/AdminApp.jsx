@@ -2,31 +2,19 @@
 
 /**
  * Admin app — working prototype.
- * Reads/writes through MikawaAPI; localStorage-backed.
  *
- * Screens:
- *   QuickPost     — fan-out to web / LINE / Instagram
- *   PriceManager  — toggle visibility, set featured, edit price
- *   NewsManager   — list / archive
- *   ProductMgr    — Shopify-side products (mocked)
- *   SnsStatus     — connection panel + manual sync
+ * Authentication is now handled by Auth.js (NextAuth v5); the role-based
+ * page filter lives in `../lib/auth`. The data layer (MikawaAPI) is still
+ * client-side / localStorage in the prototype phase.
  */
 import { useState, useEffect, useMemo } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import MikawaAPI from "../lib/api";
 import * as Auth from "../lib/auth";
 
 function useAdminStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
   useEffect(() => MikawaAPI.on(setS), []);
-  return s;
-}
-
-function useSession() {
-  const [s, setS] = useState(null);
-  useEffect(() => {
-    setS(Auth.getSession());
-    return Auth.on(setS);
-  }, []);
   return s;
 }
 
@@ -57,7 +45,7 @@ const AdminSidebar = ({ current, onNav, session }) => {
           <span className={`role-badge role-${session?.role}`}>{session?.role === "owner" ? "OWNER" : "STAFF"}</span>
           <span className="name">{session?.name}</span>
         </div>
-        <button className="adm-side-logout" onClick={() => Auth.logout()}>ログアウト</button>
+        <button className="adm-side-logout" onClick={() => signOut({ redirect: false })}>ログアウト</button>
       </div>
       <nav className="adm-side-nav">
         {items.map((i) => (
@@ -84,13 +72,22 @@ const AdminSidebar = ({ current, onNav, session }) => {
 function AdminLogin() {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
-  const submit = (e) => {
+
+  const submit = async (e) => {
     e?.preventDefault();
-    const res = Auth.login(user.trim(), pass);
-    if (!res.ok) setError(res.error);
+    setError(null);
+    setBusy(true);
+    const res = await signIn("credentials", { user: user.trim(), pass, redirect: false });
+    setBusy(false);
+    if (res?.error) setError("ユーザー名またはパスワードが違います");
   };
-  const quick = (u) => { Auth.login(u, u); };
+  const quick = async (u) => {
+    setBusy(true);
+    await signIn("credentials", { user: u, pass: u, redirect: false });
+    setBusy(false);
+  };
   return (
     <div className="adm-login">
       <form className="adm-login-card" onSubmit={submit}>
@@ -110,7 +107,9 @@ function AdminLogin() {
             onChange={(e) => setPass(e.target.value)} />
         </label>
         {error && <div className="adm-status adm-status-err">{error}</div>}
-        <button className="adm-btn adm-btn-primary adm-login-submit" type="submit">ログイン</button>
+        <button className="adm-btn adm-btn-primary adm-login-submit" type="submit" disabled={busy}>
+          {busy ? "認証中…" : "ログイン"}
+        </button>
         <div className="adm-login-hint">
           <p className="t-label">DEMO ACCOUNTS</p>
           <div className="adm-login-quick">
@@ -475,17 +474,19 @@ function SnsStatus() {
 
 // ── Admin root ──────────────────────────────────────────────
 function AdminApp() {
-  const session = useSession();
+  const { data, status } = useSession();
+  const user = data?.user;
+  const role = user?.role;
   const [route, setRoute] = useState("post");
 
   // Clamp the route to what the current role can access. Falls back to
   // the first allowed page if the user landed on something forbidden
   // (e.g. staff logged out of an owner-only page).
   useEffect(() => {
-    if (!session) return;
-    const allowed = Auth.pagesFor(session.role);
+    if (!role) return;
+    const allowed = Auth.pagesFor(role);
     if (!allowed.includes(route)) setRoute(allowed[0] || "post");
-  }, [session, route]);
+  }, [role, route]);
 
   const Page = useMemo(() => {
     switch (route) {
@@ -497,11 +498,14 @@ function AdminApp() {
     }
   }, [route]);
 
-  if (!session) return <AdminLogin />;
+  if (status === "loading") {
+    return <div className="adm-login"><div className="adm-login-card"><p>読み込み中…</p></div></div>;
+  }
+  if (!user) return <AdminLogin />;
 
   return (
     <div className="adm-root">
-      <AdminSidebar current={route} onNav={setRoute} session={session} />
+      <AdminSidebar current={route} onNav={setRoute} session={user} />
       {Page}
     </div>
   );

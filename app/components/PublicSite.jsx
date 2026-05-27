@@ -2,18 +2,21 @@
 
 /**
  * Public site — responsive (mobile-first, scales to desktop ≥ 960px).
- * Subscribes to MikawaAPI's change channel for live updates.
  *
- * Component split:
- *   <AppBar/> <Stories/> <Hero/> <ProductGrid/> <NewsList/> <AgriBlock/> <ShopMap/> <Footer/>
- *   <BottomNav/> + sticky <PriceCTA/> for mobile
+ * This module exports the individual section / page components that the
+ * Next.js routes under `app/{products,news,price,shops,agri}/page.jsx`
+ * mount. Navigation is driven by real URLs (next/link + usePathname); the
+ * client store stays subscribed via `useStore()` for live updates after
+ * the page hydrates.
  */
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import MikawaAPI from "../lib/api";
 
 // ── Hook: live store ────────────────────────────────────────
-function useStore() {
+export function useStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
   useEffect(() => MikawaAPI.on(setS), []);
   return s;
@@ -43,14 +46,14 @@ const Logo = ({ size = "md", inverse = false }) => (
 );
 
 // ── Breadcrumb ──────────────────────────────────────────────
-const Breadcrumb = ({ items, onNav }) => (
+export const Breadcrumb = ({ items }) => (
   <nav className="pub-breadcrumb" aria-label="パンくず">
     {items.map((it, i) => {
       const last = i === items.length - 1;
       return (
         <span key={i} className="pub-breadcrumb-item">
-          {it.to && !last ? (
-            <button className="pub-link-reset pub-breadcrumb-link" onClick={() => onNav(it.to)}>{it.label}</button>
+          {it.href && !last ? (
+            <Link className="pub-breadcrumb-link" href={it.href}>{it.label}</Link>
           ) : (
             <span className={last ? "is-current" : ""}>{it.label}</span>
           )}
@@ -61,34 +64,48 @@ const Breadcrumb = ({ items, onNav }) => (
   </nav>
 );
 
+// ── Nav config ──────────────────────────────────────────────
+const NAV_ITEMS = [
+  { key: "home",     href: "/",         label: "ホーム",       ico: Ico.home },
+  { key: "products", href: "/products", label: "商品・メニュー", ico: Ico.bag, navLabel: "商品" },
+  { key: "price",    href: "/price",    label: "今日の価格",   ico: Ico.tag, navLabel: "価格" },
+  { key: "news",     href: "/news",     label: "お知らせ",     ico: Ico.list },
+  { key: "shops",    href: "/shops",    label: "店舗一覧",     ico: Ico.pin, navLabel: "店舗" },
+  { key: "agri",     href: "/agri",     label: "農家との取り組み" },
+];
+
+// Derives the active section key from a pathname so AppBar/BottomNav can
+// highlight the parent tab even on detail routes like /products/[handle].
+function activeKeyFor(pathname) {
+  if (!pathname || pathname === "/") return "home";
+  for (const item of NAV_ITEMS) {
+    if (item.href === "/") continue;
+    if (pathname === item.href || pathname.startsWith(item.href + "/")) return item.key;
+  }
+  return null;
+}
+
 // ── App bar (mobile) + Top nav (desktop) ────────────────────
-const AppBar = ({ onNav, current }) => {
-  const items = [
-    { key: "home",     label: "ホーム" },
-    { key: "products", label: "商品・メニュー" },
-    { key: "price",    label: "今日の価格" },
-    { key: "news",     label: "お知らせ" },
-    { key: "shops",    label: "店舗一覧" },
-    { key: "agri",     label: "農家との取り組み" },
-  ];
+const AppBar = () => {
+  const pathname = usePathname();
+  const current = activeKeyFor(pathname);
   return (
     <header className="pub-appbar">
       <div className="pub-appbar-inner">
-        <button className="pub-link-reset" onClick={() => onNav("home")} aria-label="ホームへ">
+        <Link className="pub-link-reset" href="/" aria-label="ホームへ">
           <Logo />
-        </button>
+        </Link>
         <nav className="pub-topnav" aria-label="グローバルナビ">
-          {items.map((i) => (
-            <button key={i.key}
-              onClick={() => onNav(i.key)}
+          {NAV_ITEMS.map((i) => (
+            <Link key={i.key} href={i.href}
               className={`pub-topnav-item ${current === i.key ? "is-active" : ""}`}>
               {i.label}
-            </button>
+            </Link>
           ))}
         </nav>
         <div className="pub-appbar-icons" aria-hidden>
-          <button className="pub-icon-btn">{Ico.search}</button>
-          <button className="pub-icon-btn pub-only-mobile">{Ico.menu}</button>
+          <button className="pub-icon-btn" type="button">{Ico.search}</button>
+          <button className="pub-icon-btn pub-only-mobile" type="button">{Ico.menu}</button>
         </div>
       </div>
     </header>
@@ -96,30 +113,30 @@ const AppBar = ({ onNav, current }) => {
 };
 
 // ── Stories: today's prices ─────────────────────────────────
-const Stories = ({ prices, onMore }) => {
+const Stories = ({ prices }) => {
   const list = prices.filter((p) => p.visible);
   return (
     <section className="pub-stories">
       <header className="pub-section-head">
         <div>
-          <div className="t-label">Today's Price</div>
+          <div className="t-label">Today&apos;s Price</div>
           <h2 className="t-mincho">今日の販売価格</h2>
           <p className="pub-lead">毎朝、店頭の値段をそのままお届け。</p>
         </div>
         <div className="pub-section-meta">
           <div className="pub-date">{new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit", weekday: "short" })}</div>
-          <button className="pub-link" onClick={onMore}>すべて見る {Ico.arrow}</button>
+          <Link className="pub-link" href="/price">すべて見る {Ico.arrow}</Link>
         </div>
       </header>
       <div className="pub-story-row">
-        {list.map((v, i) => (
-          <button key={v.id} className="pub-story" onClick={onMore}>
+        {list.map((v) => (
+          <Link key={v.id} className="pub-story" href="/price">
             <div className={`pub-story-ring ${v.featured ? "is-featured" : ""}`}>
               <div className="inner"><div className="veg">{v.emoji}</div></div>
             </div>
             <div className="name">{v.name}</div>
             <div className="price">¥{v.priceJpy}</div>
-          </button>
+          </Link>
         ))}
       </div>
     </section>
@@ -135,8 +152,8 @@ const Hero = () => (
         <h1 className="t-mincho">農家と共に、<br/>畑から<span className="accent">食卓</span>へ。</h1>
         <p>昔ながらの八百屋が届ける、新しい食のかたち。<br/>愛知の畑から、毎日の食卓へ。</p>
         <div className="pub-hero-ctas">
-          <a className="pub-btn pub-btn-primary">商品を見る {Ico.arrow}</a>
-          <a className="pub-btn pub-btn-ghost">ブランドの想い</a>
+          <Link className="pub-btn pub-btn-primary" href="/products">商品を見る {Ico.arrow}</Link>
+          <Link className="pub-btn pub-btn-ghost" href="/agri">ブランドの想い</Link>
         </div>
       </div>
       <div className="pub-hero-art" aria-hidden>
@@ -149,35 +166,35 @@ const Hero = () => (
 );
 
 // ── Product grid ────────────────────────────────────────────
-const ProductGrid = ({ products, onOpen }) => (
-  <section className="pub-section pub-products">
-    <header className="pub-section-head">
-      <div>
-        <div className="t-label">Our Products</div>
-        <h3 className="t-mincho">畑とつながる、5つのかたち</h3>
-        <p className="pub-lead">農家と協同で生み出した、地域の食をつなぐ仕事たち。</p>
+const ProductCard = ({ p }) => (
+  <Link className="pub-pcard is-clickable" href={`/products/${encodeURIComponent(p.handle || p.id)}`}>
+    <div className={`img tone-${p.imgTone || "default"}`}>
+      <span className="tag">{p.category}</span>
+    </div>
+    <div className="body">
+      <h4 className="t-mincho">{p.title}</h4>
+      <p>{p.desc}</p>
+      <div className="row">
+        <div className="price">¥{p.priceJpy.toLocaleString()}<small>{p.unit}</small></div>
+        <span className="pub-link">詳しく {Ico.arrow}</span>
       </div>
-    </header>
+    </div>
+  </Link>
+);
+
+const ProductGrid = ({ products, heading = true }) => (
+  <section className="pub-section pub-products">
+    {heading && (
+      <header className="pub-section-head">
+        <div>
+          <div className="t-label">Our Products</div>
+          <h3 className="t-mincho">畑とつながる、5つのかたち</h3>
+          <p className="pub-lead">農家と協同で生み出した、地域の食をつなぐ仕事たち。</p>
+        </div>
+      </header>
+    )}
     <div className="pub-product-grid">
-      {products.map((p) => (
-        <article key={p.id} className="pub-pcard is-clickable"
-          onClick={() => onOpen && onOpen(p.id)}
-          tabIndex={0}
-          role="link"
-          onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && onOpen) { e.preventDefault(); onOpen(p.id); } }}>
-          <div className={`img tone-${p.imgTone || "default"}`}>
-            <span className="tag">{p.category}</span>
-          </div>
-          <div className="body">
-            <h4 className="t-mincho">{p.title}</h4>
-            <p>{p.desc}</p>
-            <div className="row">
-              <div className="price">¥{p.priceJpy.toLocaleString()}<small>{p.unit}</small></div>
-              <span className="pub-link">詳しく {Ico.arrow}</span>
-            </div>
-          </div>
-        </article>
-      ))}
+      {products.map((p) => <ProductCard key={p.id} p={p} />)}
     </div>
   </section>
 );
@@ -191,34 +208,33 @@ const sourceMeta = {
   web:   { label: "お知らせ",  cls: "news" },
 };
 
-const NewsList = ({ posts, compact = false, onOpen }) => (
+const NewsListSection = ({ posts, compact = false, heading = true }) => (
   <section className="pub-section pub-news">
-    <header className="pub-section-head">
-      <div>
-        <div className="t-label">News & Updates</div>
-        <h3 className="t-mincho">お知らせ</h3>
-        <p className="pub-lead">SNS・店舗・イベント情報を一覧で。</p>
-      </div>
-    </header>
+    {heading && (
+      <header className="pub-section-head">
+        <div>
+          <div className="t-label">News &amp; Updates</div>
+          <h3 className="t-mincho">お知らせ</h3>
+          <p className="pub-lead">SNS・店舗・イベント情報を一覧で。</p>
+        </div>
+      </header>
+    )}
     <ul className="pub-news-list">
       {(compact ? posts.slice(0, 4) : posts).map((n) => {
         const m = sourceMeta[n.source] || sourceMeta.news;
         return (
-          <li key={n.id}
-            className={`pub-news-item ${onOpen ? "is-clickable" : ""}`}
-            onClick={() => onOpen && onOpen(n.id)}
-            tabIndex={onOpen ? 0 : -1}
-            role={onOpen ? "link" : undefined}
-            onKeyDown={(e) => { if (onOpen && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(n.id); } }}>
-            <div className="thumb" aria-hidden>{n.emoji}</div>
-            <div className="content">
-              <div className="meta">
-                <span>{n.date}</span>
-                <span className={`pub-tag ${m.cls}`}>{m.label}</span>
+          <li key={n.id} className="pub-news-item is-clickable">
+            <Link href={`/news/${encodeURIComponent(n.id)}`} className="pub-news-item-link">
+              <div className="thumb" aria-hidden>{n.emoji}</div>
+              <div className="content">
+                <div className="meta">
+                  <span>{n.date}</span>
+                  <span className={`pub-tag ${m.cls}`}>{m.label}</span>
+                </div>
+                <div className="title t-mincho">{n.title}</div>
+                {!compact && <p className="body">{n.body}</p>}
               </div>
-              <div className="title t-mincho">{n.title}</div>
-              {!compact && <p className="body">{n.body}</p>}
-            </div>
+            </Link>
           </li>
         );
       })}
@@ -234,7 +250,7 @@ const AgriBlock = () => (
         <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Iwakuni Agri Partners</div>
         <h3 className="t-mincho">農家と共に、ものづくり。</h3>
         <p>協同組合「いわくにアグリパートナーズ」と連携し、規格外野菜を活かす商品開発・販路拡大に取り組んでいます。畑で働く人たちの声を、食卓まで届けることが、私たちの仕事です。</p>
-        <a className="pub-link inv">取り組みを詳しく見る {Ico.arrow}</a>
+        <Link className="pub-link inv" href="/agri">取り組みを詳しく見る {Ico.arrow}</Link>
       </div>
       <div className="pub-agri-photo" aria-hidden>
         <span>〔 農家・畑の風景写真 〕</span>
@@ -270,7 +286,7 @@ const ShopMap = ({ shops }) => (
               <div className="meta">{s.addr}</div>
               <div className="meta">営業 {s.hours}　／　TEL {s.tel}</div>
             </div>
-            <a className="pub-link">経路 {Ico.arrow}</a>
+            <span className="pub-link">経路 {Ico.arrow}</span>
           </li>
         ))}
       </ul>
@@ -288,11 +304,23 @@ const Footer = ({ shops }) => (
       </div>
       <div className="col">
         <h5 className="t-en">Sitemap</h5>
-        <ul><li>ホーム</li><li>商品・メニュー</li><li>今日の価格</li><li>お知らせ</li><li>店舗一覧</li></ul>
+        <ul>
+          <li><Link href="/">ホーム</Link></li>
+          <li><Link href="/products">商品・メニュー</Link></li>
+          <li><Link href="/price">今日の価格</Link></li>
+          <li><Link href="/news">お知らせ</Link></li>
+          <li><Link href="/shops">店舗一覧</Link></li>
+        </ul>
       </div>
       <div className="col">
         <h5 className="t-en">Services</h5>
-        <ul><li>オンラインショップ</li><li>お弁当のご予約</li><li>農家との取り組み</li><li>アグリパートナーズ</li><li>お問い合わせ</li></ul>
+        <ul>
+          <li>オンラインショップ</li>
+          <li>お弁当のご予約</li>
+          <li><Link href="/agri">農家との取り組み</Link></li>
+          <li>アグリパートナーズ</li>
+          <li>お問い合わせ</li>
+        </ul>
       </div>
       <div className="col">
         <h5 className="t-en">Shops</h5>
@@ -323,72 +351,99 @@ const Footer = ({ shops }) => (
 );
 
 // ── Sticky bottom: price CTA + bottom nav (mobile) ──────────
-const PriceCTA = ({ onClick }) => (
-  <button className="pub-pricecta" onClick={onClick}>
+const PriceCTA = () => (
+  <Link className="pub-pricecta" href="/price">
     <span className="ico">{Ico.tag}</span>
-    <span className="label"><small>TODAY'S PRICE</small>今日の販売価格を見る</span>
+    <span className="label"><small>TODAY&apos;S PRICE</small>今日の販売価格を見る</span>
     <span className="arrow">→</span>
-  </button>
+  </Link>
 );
 
-const BottomNav = ({ current, onNav }) => {
-  const items = [
-    { key: "home",     ico: Ico.home, label: "ホーム" },
-    { key: "products", ico: Ico.bag,  label: "商品" },
-    { key: "price",    ico: Ico.tag,  label: "価格" },
-    { key: "shops",    ico: Ico.pin,  label: "店舗" },
-    { key: "news",     ico: Ico.list, label: "お知らせ" },
-  ];
+const BottomNav = () => {
+  const pathname = usePathname();
+  const current = activeKeyFor(pathname);
+  const items = NAV_ITEMS.filter((i) => i.ico);
   return (
     <nav className="pub-bnav" aria-label="モバイルナビ">
       {items.map((i) => (
-        <button key={i.key}
-          className={`pub-bnav-item ${current === i.key ? "is-active" : ""}`}
-          onClick={() => onNav(i.key)}>
+        <Link key={i.key} href={i.href}
+          className={`pub-bnav-item ${current === i.key ? "is-active" : ""}`}>
           <span className="ico">{i.ico}</span>
-          <span>{i.label}</span>
-        </button>
+          <span>{i.navLabel || i.label}</span>
+        </Link>
       ))}
     </nav>
   );
 };
 
+// ── Public chrome — used by every public route as the layout ───
+export function PublicChrome({ children }) {
+  const pathname = usePathname();
+  const isPricePage = pathname === "/price";
+  return (
+    <div className="pub-root">
+      <AppBar />
+      <div className="pub-scroll">
+        {children}
+        <ShopsFooter />
+      </div>
+      {!isPricePage && <PriceCTA />}
+      <BottomNav />
+    </div>
+  );
+}
+
+// Footer needs the live shops list; keep it co-located with PublicChrome
+// so the chrome can be parameterless from each route.
+function ShopsFooter() {
+  const store = useStore();
+  return <Footer shops={store.shops} />;
+}
+
 // ── Pages ───────────────────────────────────────────────────
-const HomePage = ({ store, onNav, onOpenProduct, onOpenNews }) => (
-  <>
-    <Stories prices={store.dailyPrices} onMore={() => onNav("price")} />
-    <Hero />
-    <ProductGrid products={store.products} onOpen={onOpenProduct} />
-    <NewsList posts={store.posts} compact onOpen={onOpenNews} />
-    <AgriBlock />
-    <ShopMap shops={store.shops} />
-  </>
-);
+export function HomePage() {
+  const store = useStore();
+  return (
+    <>
+      <Stories prices={store.dailyPrices} />
+      <Hero />
+      <ProductGrid products={store.products} />
+      <NewsListSection posts={store.posts} compact />
+      <AgriBlock />
+      <ShopMap shops={store.shops} />
+    </>
+  );
+}
 
-const ProductsPage = ({ store, onOpenProduct }) => (
-  <main className="pub-page">
-    <header className="pub-page-head">
-      <div className="t-label">Products</div>
-      <h1 className="t-mincho">商品・メニュー</h1>
-      <p>農家直送の旬から、加工品・お弁当まで。気になるものをタップしてください。</p>
-    </header>
-    <ProductGrid products={store.products} onOpen={onOpenProduct} />
-  </main>
-);
+export function ProductsPage() {
+  const store = useStore();
+  return (
+    <main className="pub-page">
+      <header className="pub-page-head">
+        <div className="t-label">Products</div>
+        <h1 className="t-mincho">商品・メニュー</h1>
+        <p>農家直送の旬から、加工品・お弁当まで。気になるものをタップしてください。</p>
+      </header>
+      <ProductGrid products={store.products} heading={false} />
+    </main>
+  );
+}
 
-const ProductDetailPage = ({ store, id, onNav, onOpenProduct }) => {
-  const product = store.products.find((p) => p.id === id);
+export function ProductDetailPage({ handle }) {
+  const store = useStore();
+  const product = store.products.find((p) => p.handle === handle || p.id === handle);
   if (!product) {
     return (
       <main className="pub-page">
         <div className="pub-page-head">
-          <Breadcrumb
-            items={[{ label: "ホーム", to: "home" }, { label: "商品・メニュー", to: "products" }, { label: "見つかりません" }]}
-            onNav={onNav}
-          />
+          <Breadcrumb items={[
+            { label: "ホーム", href: "/" },
+            { label: "商品・メニュー", href: "/products" },
+            { label: "見つかりません" },
+          ]} />
           <h1 className="t-mincho">商品が見つかりません</h1>
           <p>削除されたか、URLが間違っている可能性があります。</p>
-          <button className="pub-btn pub-btn-ghost" style={{ marginTop: 16 }} onClick={() => onNav("products")}>商品一覧へ戻る</button>
+          <Link className="pub-btn pub-btn-ghost" style={{ marginTop: 16 }} href="/products">商品一覧へ戻る</Link>
         </div>
       </main>
     );
@@ -397,14 +452,11 @@ const ProductDetailPage = ({ store, id, onNav, onOpenProduct }) => {
   return (
     <main className="pub-page pub-detail">
       <div className="pub-detail-head">
-        <Breadcrumb
-          items={[
-            { label: "ホーム", to: "home" },
-            { label: "商品・メニュー", to: "products" },
-            { label: product.title },
-          ]}
-          onNav={onNav}
-        />
+        <Breadcrumb items={[
+          { label: "ホーム", href: "/" },
+          { label: "商品・メニュー", href: "/products" },
+          { label: product.title },
+        ]} />
       </div>
       <article className="pub-detail-product">
         <div className={`pub-detail-hero img tone-${product.imgTone || "default"}`}>
@@ -440,45 +492,28 @@ const ProductDetailPage = ({ store, id, onNav, onOpenProduct }) => {
             </div>
           </header>
           <div className="pub-product-grid">
-            {related.map((p) => (
-              <article key={p.id} className="pub-pcard is-clickable"
-                onClick={() => onOpenProduct(p.id)}
-                tabIndex={0}
-                role="link"
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenProduct(p.id); } }}>
-                <div className={`img tone-${p.imgTone || "default"}`}>
-                  <span className="tag">{p.category}</span>
-                </div>
-                <div className="body">
-                  <h4 className="t-mincho">{p.title}</h4>
-                  <p>{p.desc}</p>
-                  <div className="row">
-                    <div className="price">¥{p.priceJpy.toLocaleString()}<small>{p.unit}</small></div>
-                    <span className="pub-link">詳しく {Ico.arrow}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
+            {related.map((p) => <ProductCard key={p.id} p={p} />)}
           </div>
         </section>
       )}
     </main>
   );
-};
+}
 
-const PricePage = ({ store }) => {
+export function PricePage() {
+  const store = useStore();
   const featured = store.dailyPrices.filter((p) => p.featured && p.visible);
   const rest     = store.dailyPrices.filter((p) => !p.featured && p.visible);
   return (
     <main className="pub-page">
       <header className="pub-page-head">
-        <div className="t-label">Today's Price</div>
+        <div className="t-label">Today&apos;s Price</div>
         <h1 className="t-mincho">今日の販売価格</h1>
         <p>{new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}　毎朝更新</p>
       </header>
       {featured.length > 0 && (
         <section className="pub-section">
-          <div className="t-label">Today's Pick</div>
+          <div className="t-label">Today&apos;s Pick</div>
           <h3 className="t-mincho" style={{ marginTop: 4 }}>本日の目玉商品</h3>
           <div className="pub-feature-grid">
             {featured.map((p) => (
@@ -488,7 +523,7 @@ const PricePage = ({ store }) => {
                   <h4 className="t-mincho">{p.name}</h4>
                   <div className="price">¥{p.priceJpy}<small>{p.unit}</small></div>
                 </div>
-                <span className="ribbon t-en">Today's Pick</span>
+                <span className="ribbon t-en">Today&apos;s Pick</span>
               </article>
             ))}
           </div>
@@ -510,9 +545,10 @@ const PricePage = ({ store }) => {
       </section>
     </main>
   );
-};
+}
 
-const NewsPage = ({ store, onOpenNews }) => {
+export function NewsPage() {
+  const store = useStore();
   const [filter, setFilter] = useState("all");
   const tabs = [
     { key: "all",   label: "すべて" },
@@ -531,29 +567,31 @@ const NewsPage = ({ store, onOpenNews }) => {
       </header>
       <div className="pub-filter-row">
         {tabs.map((t) => (
-          <button key={t.key}
+          <button key={t.key} type="button"
             className={`pub-chip ${filter === t.key ? "is-active" : ""}`}
             onClick={() => setFilter(t.key)}>{t.label}</button>
         ))}
       </div>
-      <NewsList posts={filtered} onOpen={onOpenNews} />
+      <NewsListSection posts={filtered} heading={false} />
     </main>
   );
-};
+}
 
-const NewsDetailPage = ({ store, id, onNav, onOpenNews }) => {
+export function NewsDetailPage({ id }) {
+  const store = useStore();
   const post = store.posts.find((p) => p.id === id);
   if (!post) {
     return (
       <main className="pub-page">
         <div className="pub-page-head">
-          <Breadcrumb
-            items={[{ label: "ホーム", to: "home" }, { label: "お知らせ", to: "news" }, { label: "見つかりません" }]}
-            onNav={onNav}
-          />
+          <Breadcrumb items={[
+            { label: "ホーム", href: "/" },
+            { label: "お知らせ", href: "/news" },
+            { label: "見つかりません" },
+          ]} />
           <h1 className="t-mincho">お知らせが見つかりません</h1>
           <p>削除されたか、URLが間違っている可能性があります。</p>
-          <button className="pub-btn pub-btn-ghost" style={{ marginTop: 16 }} onClick={() => onNav("news")}>お知らせ一覧へ戻る</button>
+          <Link className="pub-btn pub-btn-ghost" style={{ marginTop: 16 }} href="/news">お知らせ一覧へ戻る</Link>
         </div>
       </main>
     );
@@ -563,14 +601,11 @@ const NewsDetailPage = ({ store, id, onNav, onOpenNews }) => {
   return (
     <main className="pub-page pub-detail">
       <div className="pub-detail-head">
-        <Breadcrumb
-          items={[
-            { label: "ホーム", to: "home" },
-            { label: "お知らせ", to: "news" },
-            { label: post.title },
-          ]}
-          onNav={onNav}
-        />
+        <Breadcrumb items={[
+          { label: "ホーム", href: "/" },
+          { label: "お知らせ", href: "/news" },
+          { label: post.title },
+        ]} />
       </div>
       <article className="pub-detail-news">
         <div className="pub-detail-news-head">
@@ -610,20 +645,17 @@ const NewsDetailPage = ({ store, id, onNav, onOpenNews }) => {
             {related.map((n) => {
               const mm = sourceMeta[n.source] || sourceMeta.news;
               return (
-                <li key={n.id}
-                  className="pub-news-item is-clickable"
-                  onClick={() => onOpenNews(n.id)}
-                  tabIndex={0}
-                  role="link"
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenNews(n.id); } }}>
-                  <div className="thumb" aria-hidden>{n.emoji}</div>
-                  <div className="content">
-                    <div className="meta">
-                      <span>{n.date}</span>
-                      <span className={`pub-tag ${mm.cls}`}>{mm.label}</span>
+                <li key={n.id} className="pub-news-item is-clickable">
+                  <Link href={`/news/${encodeURIComponent(n.id)}`} className="pub-news-item-link">
+                    <div className="thumb" aria-hidden>{n.emoji}</div>
+                    <div className="content">
+                      <div className="meta">
+                        <span>{n.date}</span>
+                        <span className={`pub-tag ${mm.cls}`}>{mm.label}</span>
+                      </div>
+                      <div className="title t-mincho">{n.title}</div>
                     </div>
-                    <div className="title t-mincho">{n.title}</div>
-                  </div>
+                  </Link>
                 </li>
               );
             })}
@@ -632,82 +664,31 @@ const NewsDetailPage = ({ store, id, onNav, onOpenNews }) => {
       )}
     </main>
   );
-};
+}
 
-const ShopsPage = ({ store }) => (
-  <main className="pub-page">
-    <header className="pub-page-head">
-      <div className="t-label">Shops</div>
-      <h1 className="t-mincho">店舗一覧</h1>
-      <p>愛知県内に3店舗。営業時間・アクセス情報をご案内します。</p>
-    </header>
-    <ShopMap shops={store.shops} />
-  </main>
-);
-
-const AgriPage = () => (
-  <main className="pub-page">
-    <header className="pub-page-head">
-      <div className="t-label">Agri Partners</div>
-      <h1 className="t-mincho">農家との取り組み</h1>
-      <p>協同組合いわくにアグリパートナーズと共に、地域の畑をつなぐ。</p>
-    </header>
-    <AgriBlock />
-  </main>
-);
-
-// ── Public Site root ────────────────────────────────────────
-// Route shape: { name: string, id?: string }. Top-level tabs map to a route
-// name only; detail pages add an id. The AppBar / BottomNav highlight by the
-// "tab" of the current route — product-detail still highlights "products",
-// news-detail still highlights "news".
-const tabOf = (name) => {
-  if (name === "product-detail") return "products";
-  if (name === "news-detail")    return "news";
-  return name;
-};
-
-function PublicSite() {
+export function ShopsPage() {
   const store = useStore();
-  const [route, setRoute] = useState({ name: "home" });
-
-  // navigate accepts a string ("home") or an object ({ name, id })
-  const nav = (next) => setRoute(typeof next === "string" ? { name: next } : next);
-  const openProduct = (id) => setRoute({ name: "product-detail", id });
-  const openNews    = (id) => setRoute({ name: "news-detail",    id });
-
-  // Anchor scrolling on page change
-  useEffect(() => {
-    const el = document.querySelector(".pub-scroll");
-    if (el) el.scrollTo({ top: 0, behavior: "instant" });
-  }, [route.name, route.id]);
-
-  const Page = useMemo(() => {
-    switch (route.name) {
-      case "products":        return <ProductsPage      store={store} onOpenProduct={openProduct} />;
-      case "product-detail":  return <ProductDetailPage store={store} id={route.id} onNav={nav} onOpenProduct={openProduct} />;
-      case "price":           return <PricePage         store={store} />;
-      case "news":            return <NewsPage          store={store} onOpenNews={openNews} />;
-      case "news-detail":     return <NewsDetailPage    store={store} id={route.id} onNav={nav} onOpenNews={openNews} />;
-      case "shops":           return <ShopsPage         store={store} />;
-      case "agri":            return <AgriPage          />;
-      default:                return <HomePage          store={store} onNav={nav} onOpenProduct={openProduct} onOpenNews={openNews} />;
-    }
-  }, [route, store]);
-
-  const activeTab = tabOf(route.name);
-
   return (
-    <div className="pub-root">
-      <AppBar onNav={nav} current={activeTab} />
-      <div className="pub-scroll">
-        {Page}
-        <Footer shops={store.shops} />
-      </div>
-      {activeTab !== "price" && <PriceCTA onClick={() => nav("price")} />}
-      <BottomNav current={activeTab} onNav={nav} />
-    </div>
+    <main className="pub-page">
+      <header className="pub-page-head">
+        <div className="t-label">Shops</div>
+        <h1 className="t-mincho">店舗一覧</h1>
+        <p>愛知県内に3店舗。営業時間・アクセス情報をご案内します。</p>
+      </header>
+      <ShopMap shops={store.shops} />
+    </main>
   );
 }
 
-export default PublicSite;
+export function AgriPage() {
+  return (
+    <main className="pub-page">
+      <header className="pub-page-head">
+        <div className="t-label">Agri Partners</div>
+        <h1 className="t-mincho">農家との取り組み</h1>
+        <p>協同組合いわくにアグリパートナーズと共に、地域の畑をつなぐ。</p>
+      </header>
+      <AgriBlock />
+    </main>
+  );
+}

@@ -2,9 +2,37 @@ import "./globals.css";
 import "./public-site.css";
 import "./admin.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null) ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+  "http://localhost:3000";
+
 export const metadata = {
-  title: "さとの味みかわ — 実装プロトタイプ",
-  description: "農家と共に、畑から食卓へ。",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "さとの味みかわ — 農家と共に、畑から食卓へ",
+    template: "%s",
+  },
+  description: "愛知の畑から、毎日の食卓へ。今日の販売価格・新鮮な野菜・お弁当・加工品を、農家直送でお届けします。",
+  applicationName: "さとの味みかわ",
+  authors: [{ name: "株式会社さとの味みかわ" }],
+  keywords: ["八百屋", "愛知", "三河", "農家直送", "野菜", "弁当", "今日の価格", "アグリパートナーズ"],
+  openGraph: {
+    siteName: "さとの味みかわ",
+    type: "website",
+    locale: "ja_JP",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2d5a3d",
 };
 
 const FONTS_HREF =
