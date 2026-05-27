@@ -1,20 +1,21 @@
-/* global React */
+"use client";
 
 /**
  * Public site — responsive (mobile-first, scales to desktop ≥ 960px).
- * Reads from window.MikawaAPI; subscribes to the change channel for live updates.
+ * Subscribes to MikawaAPI's change channel for live updates.
  *
- * Component split mirrors what we'd ship to Next.js:
- *   <AppBar/> <PriceStrip/> <Hero/> <ProductGrid/> <NewsList/> <AgriBlock/> <ShopMap/> <Footer/>
+ * Component split:
+ *   <AppBar/> <Stories/> <Hero/> <ProductGrid/> <NewsList/> <AgriBlock/> <ShopMap/> <Footer/>
  *   <BottomNav/> + sticky <PriceCTA/> for mobile
  */
 
-const { useState, useEffect, useMemo, useRef } = React;
+import { useState, useEffect, useMemo } from "react";
+import MikawaAPI from "../lib/mock-api";
 
 // ── Hook: live store ────────────────────────────────────────
 function useStore() {
-  const [s, setS] = useState(() => window.MikawaAPI.getState());
-  useEffect(() => window.MikawaAPI.on(setS), []);
+  const [s, setS] = useState(() => MikawaAPI.getState());
+  useEffect(() => MikawaAPI.on(setS), []);
   return s;
 }
 
@@ -709,4 +710,4 @@ function PublicSite() {
   );
 }
 
-window.PublicSite = PublicSite;
+export default PublicSite;

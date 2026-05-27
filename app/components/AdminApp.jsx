@@ -1,8 +1,8 @@
-/* global React */
+"use client";
 
 /**
  * Admin app — working prototype.
- * Reads/writes through window.MikawaAPI; localStorage-backed.
+ * Reads/writes through MikawaAPI; localStorage-backed.
  *
  * Screens:
  *   QuickPost     — fan-out to web / LINE / Instagram
@@ -11,11 +11,12 @@
  *   ProductMgr    — Shopify-side products (mocked)
  *   SnsStatus     — connection panel + manual sync
  */
-const { useState, useEffect, useMemo } = React;
+import { useState, useEffect, useMemo } from "react";
+import MikawaAPI from "../lib/mock-api";
 
 function useAdminStore() {
-  const [s, setS] = useState(() => window.MikawaAPI.getState());
-  useEffect(() => window.MikawaAPI.on(setS), []);
+  const [s, setS] = useState(() => MikawaAPI.getState());
+  useEffect(() => MikawaAPI.on(setS), []);
   return s;
 }
 
@@ -49,7 +50,7 @@ const AdminSidebar = ({ current, onNav }) => {
       </nav>
       <div className="adm-side-foot">
         <button className="adm-side-reset" onClick={() => {
-          if (confirm("初期データに戻しますか？")) window.MikawaAPI.reset();
+          if (confirm("初期データに戻しますか？")) MikawaAPI.reset();
         }}>初期データに戻す</button>
       </div>
     </aside>
@@ -95,7 +96,7 @@ function QuickPost() {
     const ch = Object.entries(channels).filter(([, v]) => v).map(([k]) => k);
     if (ch.length === 0) { setStatus({ kind: "err", msg: "配信先を1つ以上選んでください" }); return; }
     setStatus({ kind: "info", msg: "配信中..." });
-    await window.MikawaAPI.news.post({ title, body, emoji, channels: ch, source: ch[0] });
+    await MikawaAPI.news.post({ title, body, emoji, channels: ch, source: ch[0] });
     setStatus({ kind: "ok", msg: `${ch.map((c) => ({web:"サイト",line:"LINE",ig:"Instagram"}[c])).join("・")} に投稿しました` });
     setTitle(""); setBody("");
     setTimeout(() => setStatus(null), 3500);
@@ -168,7 +169,7 @@ function PriceManager() {
   const [adding, setAdding] = useState(false);
   const [newRow, setNewRow] = useState({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
 
-  const update = (id, patch) => window.MikawaAPI.prices.update(id, patch);
+  const update = (id, patch) => MikawaAPI.prices.update(id, patch);
   const flush = (id) => {
     const d = draft[id]; if (!d) return;
     if (d.priceJpy != null) update(id, { priceJpy: yenToInt(d.priceJpy) });
@@ -212,7 +213,7 @@ function PriceManager() {
               </td>
               <td>
                 <button className="adm-btn-link adm-btn-danger"
-                  onClick={() => confirm(`${p.name} を削除しますか？`) && window.MikawaAPI.prices.remove(p.id)}>削除</button>
+                  onClick={() => confirm(`${p.name} を削除しますか？`) && MikawaAPI.prices.remove(p.id)}>削除</button>
               </td>
             </tr>
           ))}
@@ -225,7 +226,7 @@ function PriceManager() {
               <td colSpan={3}>
                 <button className="adm-btn adm-btn-primary adm-btn-sm" onClick={async () => {
                   if (!newRow.name) return;
-                  await window.MikawaAPI.prices.create({ ...newRow, priceJpy: yenToInt(newRow.priceJpy) });
+                  await MikawaAPI.prices.create({ ...newRow, priceJpy: yenToInt(newRow.priceJpy) });
                   setNewRow({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
                   setAdding(false);
                 }}>追加</button>
@@ -267,7 +268,7 @@ function NewsManager() {
                 </div>
               </td>
               <td>
-                <button className="adm-btn-link adm-btn-danger" onClick={() => confirm("この投稿を削除しますか？") && window.MikawaAPI.news.remove(n.id)}>削除</button>
+                <button className="adm-btn-link adm-btn-danger" onClick={() => confirm("この投稿を削除しますか？") && MikawaAPI.news.remove(n.id)}>削除</button>
               </td>
             </tr>
           ))}
@@ -287,10 +288,10 @@ function ProductManager() {
   const save = async () => {
     const payload = { ...form, priceJpy: yenToInt(form.priceJpy) };
     if (editing && editing !== "new") payload.id = editing;
-    await window.MikawaAPI.shopify.upsertProduct(payload);
+    await MikawaAPI.shopify.upsertProduct(payload);
     setEditing(null);
   };
-  const remove = (id) => confirm("削除しますか？") && window.MikawaAPI.shopify.deleteProduct(id);
+  const remove = (id) => confirm("削除しますか？") && MikawaAPI.shopify.deleteProduct(id);
 
   return (
     <AdminPage title="商品管理"
@@ -357,7 +358,7 @@ function SnsStatus() {
 
   const Card = ({ name, label, children }) => {
     const c = store.connections[name];
-    const sync = async () => { setBusy(name); await window.MikawaAPI.connections.sync(name); setBusy(null); };
+    const sync = async () => { setBusy(name); await MikawaAPI.connections.sync(name); setBusy(null); };
     return (
       <section className="adm-conn">
         <div className="adm-conn-head">
@@ -366,7 +367,7 @@ function SnsStatus() {
             <h3 className="t-mincho">{c.connected ? "連携中" : "未接続"}</h3>
           </div>
           <button className={`adm-toggle adm-toggle-lg ${c.connected ? "is-on" : ""}`}
-            onClick={() => window.MikawaAPI.connections.toggle(name, !c.connected)}>
+            onClick={() => MikawaAPI.connections.toggle(name, !c.connected)}>
             <span /> {c.connected ? "ON" : "OFF"}
           </button>
         </div>
@@ -422,4 +423,4 @@ function AdminApp() {
   );
 }
 
-window.AdminApp = AdminApp;
+export default AdminApp;
