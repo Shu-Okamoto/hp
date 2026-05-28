@@ -54,10 +54,14 @@ const Ico = {
 };
 
 // ── Logo ────────────────────────────────────────────────────
-const Logo = ({ size = "md", inverse = false }) => (
-  <div className={`pub-logo pub-logo-${size} ${inverse ? "inv" : ""}`}>
-    <div className="mark">里</div>
-    <div className="name">里の味みかわ<small>SATONOAJI MIKAWA</small></div>
+// Uses the brand image (transparent PNG); no background wrapper so the
+// host's surface color shows through. `size` controls the rendered
+// height via CSS; `inverse` is kept for API compat but currently has no
+// visual effect — supply a separate logo-inverse.png if a light-on-dark
+// variant becomes necessary.
+const Logo = ({ size = "md" }) => (
+  <div className={`pub-logo pub-logo-${size}`}>
+    <img src="/logo.png" alt="里の味みかわ" />
   </div>
 );
 

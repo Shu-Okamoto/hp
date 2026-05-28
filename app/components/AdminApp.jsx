@@ -37,8 +37,8 @@ const AdminSidebar = ({ current, onNav, session }) => {
   return (
     <aside className="adm-side">
       <div className="adm-side-brand">
-        <div className="mark">里</div>
-        <div className="name">里の味みかわ<small>ADMIN CONSOLE</small></div>
+        <img src="/logo.png" alt="里の味みかわ" />
+        <small className="kicker">ADMIN CONSOLE</small>
       </div>
       <div className="adm-side-user">
         <div className="who">
@@ -92,8 +92,8 @@ function AdminLogin() {
     <div className="adm-login">
       <form className="adm-login-card" onSubmit={submit}>
         <div className="adm-login-brand">
-          <div className="mark">里</div>
-          <div className="name">里の味みかわ<small>ADMIN CONSOLE</small></div>
+          <img src="/logo.png" alt="里の味みかわ" />
+          <small className="kicker">ADMIN CONSOLE</small>
         </div>
         <h2 className="t-mincho">管理画面にログイン</h2>
         <label className="adm-field">

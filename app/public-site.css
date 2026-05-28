@@ -23,31 +23,17 @@
 }
 .pub-link-reset { background: none; border: 0; padding: 0; cursor: pointer; }
 
-/* Logo */
-.pub-logo { display: flex; align-items: center; gap: 8px; }
-.pub-logo .mark {
-  width: 30px; height: 30px;
-  border: 1.5px solid var(--c-primary);
-  border-radius: 50%;
-  display: grid; place-items: center;
-  font-family: var(--f-mincho); font-size: 14px; color: var(--c-primary);
-}
-.pub-logo .name {
-  font-family: var(--f-mincho); font-size: 15px;
-  color: var(--c-primary); letter-spacing: 0.02em;
-  text-align: left;
-}
-.pub-logo .name small {
+/* Logo — transparent PNG dropped in over the host's background. No
+   wrapper background; size set by container height. */
+.pub-logo { display: inline-flex; align-items: center; }
+.pub-logo img {
   display: block;
-  font-family: var(--f-en); font-size: 9px;
-  letter-spacing: 0.2em; color: var(--c-text-sub); margin-top: -2px;
+  height: 36px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
 }
-.pub-logo-lg .mark { width: 42px; height: 42px; font-size: 18px; }
-.pub-logo-lg .name { font-size: 18px; }
-.pub-logo-lg .name small { font-size: 10px; margin-top: 2px; }
-.pub-logo.inv .mark { border-color: var(--c-orange-400); color: var(--c-orange-400); }
-.pub-logo.inv .name { color: var(--c-bg); }
-.pub-logo.inv .name small { color: var(--c-orange-400); }
+.pub-logo-lg img { height: 64px; max-width: 280px; }
 
 /* App bar (sticky) */
 .pub-appbar {
