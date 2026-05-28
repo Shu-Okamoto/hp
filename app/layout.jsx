@@ -1,15 +1,10 @@
 import "./globals.css";
 import "./public-site.css";
 import "./admin.css";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null) ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-  "http://localhost:3000";
+import { getSiteUrl } from "./lib/site-url";
 
 export const metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "里の味みかわ — 農家と共に、畑から食卓へ",
     template: "%s",

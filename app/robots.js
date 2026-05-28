@@ -1,11 +1,7 @@
-const siteUrl = () =>
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null) ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-  "http://localhost:3000";
+import { getSiteUrl } from "./lib/site-url";
 
 export default function robots() {
-  const base = siteUrl();
+  const base = getSiteUrl();
   return {
     rules: [
       { userAgent: "*", allow: "/", disallow: ["/admin", "/api", "/wireframes"] },
