@@ -1,22 +1,24 @@
 import "server-only";
-import { serviceClient, isSupabaseConfigured } from "./supabase";
+import { serviceClient, anonClient } from "./supabase";
 import { seed } from "./seed";
 
 /**
  * Server-side daily-price store backed by Supabase.
  *
- * Each price is one row in `public.prices`. The admin still sends the
- * full ordered list on every mutation (bulk-replace semantics); we
- * translate that to upsert + delete-not-in to avoid wiping the table
- * in between.
+ * Reads go through the anon client (gated by an "anyone can read"
+ * RLS policy on public.prices). Writes go through the service role
+ * client, which bypasses RLS — required because we authenticate the
+ * admin via Auth.js, not Supabase Auth, so we have no per-user JWT to
+ * present.
  *
- * The DB schema uses snake_case (`price_jpy`); we translate to/from the
- * camelCase shape that the React components and seed already use.
+ * If only the service role is configured (e.g. before NEXT_PUBLIC_
+ * keys are set), reads transparently fall back to it so the site
+ * keeps working.
  *
  * Env (set in Vercel → Project → Environment Variables):
- *   NEXT_PUBLIC_SUPABASE_URL        (or SUPABASE_URL)
- *   NEXT_PUBLIC_SUPABASE_ANON_KEY   (public reads with RLS)
- *   SUPABASE_SERVICE_ROLE_KEY       (server-only writes / bypasses RLS)
+ *   NEXT_PUBLIC_SUPABASE_URL        — project URL, public
+ *   NEXT_PUBLIC_SUPABASE_ANON_KEY   — public reads with RLS
+ *   SUPABASE_SERVICE_ROLE_KEY       — server-only writes (secret)
  *
  * Schema lives in supabase/migrations/001_prices.sql — run it once via
  * Supabase Dashboard → SQL Editor.
@@ -49,11 +51,11 @@ function toDb(p, position) {
   };
 }
 
-export { isSupabaseConfigured };
-
 export async function getPrices() {
-  if (!isSupabaseConfigured()) return seed().dailyPrices;
-  const supabase = serviceClient();
+  // Reads prefer the anon client (RLS-gated); fall back to the service
+  // role when anon isn't configured so partial setups still serve data.
+  const supabase = anonClient() || serviceClient();
+  if (!supabase) return seed().dailyPrices;
   const { data, error } = await supabase
     .from(TABLE)
     .select("*")
@@ -67,12 +69,12 @@ export async function getPrices() {
 }
 
 export async function setPrices(list) {
-  if (!isSupabaseConfigured()) {
+  const supabase = serviceClient();
+  if (!supabase) {
     const err = new Error("SUPABASE_NOT_CONFIGURED");
     err.code = "SUPABASE_NOT_CONFIGURED";
     throw err;
   }
-  const supabase = serviceClient();
   const rows = list.map((p, i) => toDb(p, i));
   const ids = rows.map((r) => r.id);
 

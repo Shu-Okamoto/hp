@@ -62,9 +62,9 @@ npm start
 | `NEXT_PUBLIC_SITE_URL` | sitemap.xml / robots.txt / OGP の絶対 URL | – (Vercel が自動推論) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | 店舗ページのミニマップ | 地図表示時 |
 | `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | ベクター地図のスタイル ID（Cloud Console で作成） | – (未設定なら `DEMO_MAP_ID`) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL | 価格管理時 |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) キー — RLS でガード | 価格管理時 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role キー — サーバ専用 (秘匿) | 価格 PUT 時 |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL | 価格表示・編集時 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon (public) キー。`/price` の読み取り・RLS でガード | 価格表示時 |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role キー。サーバ専用 (秘匿)、admin の **書き込みのみ** に使用 | 価格 PUT 時 |
 | `SHOPIFY_STORE_DOMAIN` | `*.myshopify.com` | real 時 |
 | `SHOPIFY_STOREFRONT_TOKEN` | Storefront API 読み取り用トークン | real 時 |
 | `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン | real 時 (POST/DELETE) |
