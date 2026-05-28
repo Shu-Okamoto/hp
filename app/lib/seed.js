@@ -13,11 +13,11 @@ export function seed() {
       lastSync: { shopify: today(), instagram: today(), line: today() },
     },
     products: [
-      { id: "p-set",   handle: "mikawa-set",   title: "三河野菜の旬セット", priceJpy: 2480, unit: "/ セット",     category: "看板",  imgTone: "green",  desc: "旬の野菜10品をバランスよく詰め合わせ。" },
-      { id: "p-bento", handle: "yakult-bento", title: "ヤクルト式 お弁当便",   priceJpy: 650,  unit: "/ 1食〜",     category: "弁当",  imgTone: "orange", desc: "週替わりカタログから選べる地域密着の弁当配達。" },
+      { id: "p-set",   handle: "mikawa-set",   title: "岩国野菜の旬セット",   priceJpy: 2480, unit: "/ セット",     category: "看板",  imgTone: "green",  desc: "錦川流域の畑から、旬の野菜10品をバランスよく詰め合わせ。" },
+      { id: "p-bento", handle: "yakult-bento", title: "ヤクルト式 お弁当便", priceJpy: 650,  unit: "/ 1食〜",     category: "弁当",  imgTone: "orange", desc: "週替わりカタログから選べる、岩国エリア地域密着の弁当配達。" },
       { id: "p-jam",   handle: "farm-jam",     title: "農家のジャム",         priceJpy: 880,  unit: "〜",          category: "加工品", imgTone: "",       desc: "規格外野菜から生まれる、季節の保存食。" },
-      { id: "p-pickle",handle: "farm-pickle",  title: "三河の漬物三種",       priceJpy: 1280, unit: "/ 3袋",       category: "加工品", imgTone: "",       desc: "ベテラン農家直伝のレシピで仕込んだ手づくり漬物。" },
-      { id: "p-rice",  handle: "mikawa-rice",  title: "三河平野の新米",       priceJpy: 3680, unit: "/ 5kg",       category: "穀物",  imgTone: "green",  desc: "契約農家から直送、棚田で育った特別栽培米。" },
+      { id: "p-pickle",handle: "farm-pickle",  title: "岩国の漬物三種",       priceJpy: 1280, unit: "/ 3袋",       category: "加工品", imgTone: "",       desc: "ベテラン農家直伝のレシピで仕込んだ手づくり漬物。" },
+      { id: "p-rice",  handle: "mikawa-rice",  title: "岩国産の新米",         priceJpy: 3680, unit: "/ 5kg",       category: "穀物",  imgTone: "green",  desc: "錦川流域の契約農家から直送、棚田で育った特別栽培米。" },
       { id: "p-juice", handle: "tomato-juice", title: "完熟トマトジュース",   priceJpy: 980,  unit: "/ 720ml",     category: "加工品", imgTone: "orange", desc: "旬のトマトだけを贅沢に絞った無添加ジュース。" },
     ],
     dailyPrices: [
@@ -31,10 +31,10 @@ export function seed() {
       { id: "v-onion",   emoji: "🧅", name: "玉ねぎ",       priceJpy: 100, unit: "/ 2玉",   featured: false, visible: true },
     ],
     posts: [
-      { id: "n-001", date: today(), source: "ig",    title: "本日の入荷：岩国の朝採れトマトが入りました", body: "今朝、契約農家さんから真っ赤に熟したトマトが届きました。1パック280円。なくなり次第終了です。", emoji: "🍅", igHandle: "@satonoajimikawa", channels: ["ig","web"] },
-      { id: "n-002", date: today(), source: "line",  title: "週末セール開催のお知らせ・15時から店頭にて", body: "土日15時から夕方限定の見切りセールを開催します。野菜・お惣菜が最大半額！", emoji: "🎁", channels: ["line","web"] },
-      { id: "n-003", date: today(), source: "event", title: "5月『畑の収穫体験』参加者募集中", body: "農家のおじちゃんと一緒に、畑で野菜を収穫する半日体験。お子さま参加歓迎。", emoji: "🌱", channels: ["web"] },
-      { id: "n-004", date: today(), source: "news",  title: "ゴールデンウィーク営業時間のご案内", body: "5/3-5/6は通常営業。5/7のみ臨時休業させていただきます。", emoji: "📅", channels: ["web","line"] },
+      { id: "n-001", date: today(), source: "ig",    title: "今日のストーリー更新しました",       body: "Instagramのストーリーを更新しました。畑からの今日の様子・本日の入荷をぜひご覧ください。",                       emoji: "📸", igHandle: "@satonoajimikawa", channels: ["ig","web"] },
+      { id: "n-002", date: today(), source: "line",  title: "週末の広告アップしました",           body: "週末の特売チラシを公式LINEで配信しました。LINEご登録のうえ、お得情報をいち早く受け取ってください。",          emoji: "🎁", channels: ["line","web"] },
+      { id: "n-003", date: today(), source: "event", title: "5月『畑の収穫体験』参加者募集中",     body: "農家のおじちゃんと一緒に、畑で野菜を収穫する半日体験。お子さま参加歓迎。",                                       emoji: "🌱", channels: ["web"] },
+      { id: "n-004", date: today(), source: "news",  title: "GW営業時間のお知らせ",                body: "GW期間の営業時間をご案内します。5/3-5/6は通常営業、5/7のみ臨時休業させていただきます。",                       emoji: "📅", channels: ["web","line"] },
     ],
     shops: [
       { id: "s-honbu",    name: "みかわ本社惣菜本部", addr: "山口県岩国市尾津町5-11-1",    hours: "8:00 - 17:00", tel: "0827-32-1346", x: 62, y: 32 },
