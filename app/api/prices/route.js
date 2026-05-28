@@ -1,18 +1,17 @@
 import { auth } from "../../../auth";
-import { getPrices, setPrices, isKvConfigured } from "../../lib/prices-store";
+import { getPrices, setPrices } from "../../lib/prices-store";
 
 /**
  * Daily prices API.
  *
- * GET  → public read. Returns the array (KV-backed; falls back to seed
- *        data when KV isn't configured).
+ * GET  → public read. Returns the array (Supabase-backed; falls back to
+ *        seed data when the table is empty or Supabase isn't configured).
  * PUT  → bulk replace. Requires an authenticated admin session
- *        (any role). Returns 503 with a configuration hint when KV
- *        isn't provisioned so the admin UI can surface the issue.
+ *        (any role). Returns 503 with a configuration hint when
+ *        Supabase isn't connected so the admin UI surfaces the issue.
  *
- * The bulk-replace shape is intentional — the admin's PriceManager
- * always sends the full ordered list, which keeps reorder semantics
- * trivial and avoids partial-update races.
+ * The bulk-replace shape keeps reorder semantics trivial and avoids
+ * partial-update races.
  */
 
 export const dynamic = "force-dynamic";
@@ -47,10 +46,10 @@ export async function PUT(req) {
     await setPrices(list);
     return Response.json({ ok: true, count: list.length });
   } catch (e) {
-    if (e.code === "KV_NOT_CONFIGURED") {
+    if (e.code === "SUPABASE_NOT_CONFIGURED") {
       return Response.json({
-        error: "Vercel KV not configured",
-        hint: "Vercel ダッシュボードの Storage タブで KV データベースを作成し、プロジェクトに接続してください。",
+        error: "Supabase not configured",
+        hint: "NEXT_PUBLIC_SUPABASE_URL と SUPABASE_SERVICE_ROLE_KEY を Vercel の Environment Variables に設定し、supabase/migrations/001_prices.sql を Supabase の SQL Editor で実行してください。",
       }, { status: 503 });
     }
     return Response.json({ error: e.message }, { status: 500 });

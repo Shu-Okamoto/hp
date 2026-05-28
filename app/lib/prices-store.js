@@ -1,47 +1,94 @@
 import "server-only";
-import { kv } from "@vercel/kv";
+import { serviceClient, isSupabaseConfigured } from "./supabase";
 import { seed } from "./seed";
 
 /**
- * Server-side daily-price store.
+ * Server-side daily-price store backed by Supabase.
  *
- * Vercel KV (Upstash Redis) holds a single JSON blob under `prices:v1`
- * — the full ordered array, replaced on every write. Sufficient for the
- * 10–20 row daily-price board; saves the complexity of per-row keys.
+ * Each price is one row in `public.prices`. The admin still sends the
+ * full ordered list on every mutation (bulk-replace semantics); we
+ * translate that to upsert + delete-not-in to avoid wiping the table
+ * in between.
  *
- * When KV env vars aren't present (local dev, or before the user has
- * provisioned KV in Vercel Storage), reads fall back to `seed()` so the
- * site stays fully renderable, and writes return KV_NOT_CONFIGURED for
- * the route handler to translate into a 503.
+ * The DB schema uses snake_case (`price_jpy`); we translate to/from the
+ * camelCase shape that the React components and seed already use.
  *
- * Env (Vercel auto-injects after Storage → Create KV → Connect):
- *   KV_REST_API_URL
- *   KV_REST_API_TOKEN
- *   KV_REST_API_READ_ONLY_TOKEN  (optional, for public GETs)
+ * Env (set in Vercel → Project → Environment Variables):
+ *   NEXT_PUBLIC_SUPABASE_URL        (or SUPABASE_URL)
+ *   NEXT_PUBLIC_SUPABASE_ANON_KEY   (public reads with RLS)
+ *   SUPABASE_SERVICE_ROLE_KEY       (server-only writes / bypasses RLS)
+ *
+ * Schema lives in supabase/migrations/001_prices.sql — run it once via
+ * Supabase Dashboard → SQL Editor.
  */
 
-const KEY = "prices:v1";
+const TABLE = "prices";
 
-export function isKvConfigured() {
-  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+function fromDb(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    emoji: row.emoji,
+    unit: row.unit,
+    priceJpy: row.price_jpy,
+    visible: row.visible,
+    featured: row.featured,
+  };
 }
 
+function toDb(p, position) {
+  return {
+    id: p.id,
+    name: p.name,
+    emoji: p.emoji ?? "🥬",
+    unit: p.unit ?? "",
+    price_jpy: Number(p.priceJpy) || 0,
+    visible: !!p.visible,
+    featured: !!p.featured,
+    position,
+  };
+}
+
+export { isSupabaseConfigured };
+
 export async function getPrices() {
-  if (!isKvConfigured()) return seed().dailyPrices;
-  try {
-    const stored = await kv.get(KEY);
-    if (Array.isArray(stored)) return stored;
-  } catch (e) {
-    console.error("[prices-store] KV read failed:", e);
+  if (!isSupabaseConfigured()) return seed().dailyPrices;
+  const supabase = serviceClient();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .order("position", { ascending: true });
+  if (error) {
+    console.error("[prices-store] select failed:", error);
+    return seed().dailyPrices;
   }
-  return seed().dailyPrices;
+  if (!data || data.length === 0) return seed().dailyPrices;
+  return data.map(fromDb);
 }
 
 export async function setPrices(list) {
-  if (!isKvConfigured()) {
-    const err = new Error("KV_NOT_CONFIGURED");
-    err.code = "KV_NOT_CONFIGURED";
+  if (!isSupabaseConfigured()) {
+    const err = new Error("SUPABASE_NOT_CONFIGURED");
+    err.code = "SUPABASE_NOT_CONFIGURED";
     throw err;
   }
-  await kv.set(KEY, list);
+  const supabase = serviceClient();
+  const rows = list.map((p, i) => toDb(p, i));
+  const ids = rows.map((r) => r.id);
+
+  // Upsert the new/updated rows first — this writes the desired state.
+  const { error: upsertErr } = await supabase.from(TABLE).upsert(rows);
+  if (upsertErr) throw upsertErr;
+
+  // Then drop anything no longer in the list. Skipping the delete when
+  // ids is empty would wipe the table; we never want to do that here
+  // (admin must remove rows via explicit operations), but we still
+  // guard for the edge case.
+  if (ids.length > 0) {
+    const { error: delErr } = await supabase
+      .from(TABLE)
+      .delete()
+      .not("id", "in", `(${ids.map((id) => `"${id}"`).join(",")})`);
+    if (delErr) throw delErr;
+  }
 }

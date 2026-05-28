@@ -62,7 +62,9 @@ npm start
 | `NEXT_PUBLIC_SITE_URL` | sitemap.xml / robots.txt / OGP の絶対 URL | – (Vercel が自動推論) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | 店舗ページのミニマップ | 地図表示時 |
 | `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | ベクター地図のスタイル ID（Cloud Console で作成） | – (未設定なら `DEMO_MAP_ID`) |
-| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | 価格管理の永続化 (Vercel KV / Upstash Redis)。Vercel → Storage → Create → KV で作成 → プロジェクトに Connect すると自動注入 | 価格 PUT 時 |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL | 価格管理時 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) キー — RLS でガード | 価格管理時 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role キー — サーバ専用 (秘匿) | 価格 PUT 時 |
 | `SHOPIFY_STORE_DOMAIN` | `*.myshopify.com` | real 時 |
 | `SHOPIFY_STOREFRONT_TOKEN` | Storefront API 読み取り用トークン | real 時 |
 | `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン | real 時 (POST/DELETE) |
@@ -121,4 +123,17 @@ app/
 auth.js                       Auth.js v5 設定（CredentialsProvider）
 middleware.js                 production で /wireframes を 410
 public/wireframes/            旧ワイヤーフレーム/デザインキャンバス
+supabase/migrations/          価格テーブル等のスキーマ SQL（手動実行）
 ```
+
+## Supabase セットアップ（価格管理）
+
+1. https://supabase.com/dashboard → **New project** で作成（free tier で十分）
+2. **Project Settings → API** で URL と 2 つの key をメモ:
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (秘匿、サーバ専用)
+3. **SQL Editor → New query** を開き、`supabase/migrations/001_prices.sql` の内容を貼り付けて Run。
+   - `public.prices` テーブル + RLS ポリシー + 初期 8 行 が作成されます。
+4. Vercel → Project → Environment Variables に上記 3 つを追加 → Redeploy。
+5. `/admin → 価格管理` で値を変更 → 別ブラウザで `/price` を開いて反映を確認。
