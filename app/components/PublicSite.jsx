@@ -421,14 +421,24 @@ function ShopsFooter() {
 }
 
 // ── Pages ───────────────────────────────────────────────────
-export function HomePage() {
+export function HomePage({
+  prices: initialPrices,
+  posts: initialPosts,
+  products: initialProducts,
+} = {}) {
+  // Server pages pass live data sourced from Supabase. We still fall
+  // back to the client store so the impl host / preview deploys with
+  // no DB connection keep rendering.
   const store = useStore();
+  const prices = initialPrices ?? store.dailyPrices;
+  const posts = initialPosts ?? store.posts;
+  const products = initialProducts ?? store.products;
   return (
     <>
-      <Stories prices={store.dailyPrices} />
+      <Stories prices={prices} />
       <Hero />
-      <ProductGrid products={store.products} />
-      <NewsListSection posts={store.posts} compact />
+      <ProductGrid products={products} />
+      <NewsListSection posts={posts} compact />
       <AgriBlock />
       <ShopMap shops={store.shops} />
     </>

@@ -1,4 +1,11 @@
 import { HomePage } from "../components/PublicSite";
+import { getPrices } from "../lib/prices-store";
+import { getPosts } from "../lib/posts-store";
+import { getProducts } from "../lib/products-store";
+
+// Revalidate every 30 seconds so admin edits propagate quickly to the
+// homepage Stories / ProductGrid / NewsList sections.
+export const revalidate = 30;
 
 export const metadata = {
   title: "里の味みかわ — 農家と共に、畑から食卓へ",
@@ -12,6 +19,14 @@ export const metadata = {
   },
 };
 
-export default function Page() {
-  return <HomePage />;
+export default async function Page() {
+  // Fetch in parallel — each store has its own seed fallback when
+  // Supabase isn't configured, so the page renders cleanly even on
+  // unprovisioned previews.
+  const [prices, posts, products] = await Promise.all([
+    getPrices(),
+    getPosts(),
+    getProducts(),
+  ]);
+  return <HomePage prices={prices} posts={posts} products={products} />;
 }

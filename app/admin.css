@@ -54,6 +54,12 @@
 .adm-side-item:hover { background: rgba(255,255,255,0.06); color: var(--c-bg); }
 .adm-side-item.is-active { background: var(--c-bg); color: var(--c-primary); font-weight: 600; }
 .adm-side-item .ico { width: 22px; text-align: center; font-size: 15px; }
+.adm-side-item-link {
+  text-decoration: none;
+  margin-top: 10px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(250,245,236,0.10);
+}
 .adm-side-foot {
   border-top: 1px solid rgba(250,245,236,0.12);
   padding-top: 12px; margin-top: 8px;

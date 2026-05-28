@@ -56,6 +56,11 @@ const AdminSidebar = ({ current, onNav, session }) => {
             <span>{i.label}</span>
           </button>
         ))}
+        <a className="adm-side-item adm-side-item-link"
+          href="/" target="_blank" rel="noopener noreferrer">
+          <span className="ico">↗</span>
+          <span>サイトを見る</span>
+        </a>
       </nav>
       {isOwner && (
         <div className="adm-side-foot">
