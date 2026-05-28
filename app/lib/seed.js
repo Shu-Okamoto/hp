@@ -36,10 +36,12 @@ export function seed() {
       { id: "n-003", date: today(), source: "event", title: "5月『畑の収穫体験』参加者募集中",     body: "農家のおじちゃんと一緒に、畑で野菜を収穫する半日体験。お子さま参加歓迎。",                                       emoji: "🌱", channels: ["web"] },
       { id: "n-004", date: today(), source: "news",  title: "GW営業時間のお知らせ",                body: "GW期間の営業時間をご案内します。5/3-5/6は通常営業、5/7のみ臨時休業させていただきます。",                       emoji: "📅", channels: ["web","line"] },
     ],
+    // Coordinates are approximate; refine by checking each address in Google
+    // Maps and updating lat/lng here (no rebuild of API logic required).
     shops: [
-      { id: "s-honbu",    name: "みかわ本社惣菜本部", addr: "山口県岩国市尾津町5-11-1",    hours: "8:00 - 17:00", tel: "0827-32-1346", x: 62, y: 32 },
-      { id: "s-nishi",    name: "みかわ西岩国店",     addr: "山口県岩国市岩国2丁目16-2",   hours: "9:00 - 17:00", tel: "0827-43-4773", x: 30, y: 55 },
-      { id: "s-minami",   name: "みかわ南岩国店",     addr: "山口県岩国市南岩国1丁目21-33", hours: "9:00 - 17:00", tel: "0827-32-6510", x: 52, y: 78 },
+      { id: "s-honbu",  name: "みかわ本社惣菜本部", addr: "山口県岩国市尾津町5-11-1",     hours: "8:00 - 17:00", tel: "0827-32-1346", lat: 34.1572, lng: 132.2274 },
+      { id: "s-nishi",  name: "みかわ西岩国店",     addr: "山口県岩国市岩国2丁目16-2",    hours: "9:00 - 17:00", tel: "0827-43-4773", lat: 34.1693, lng: 132.2050 },
+      { id: "s-minami", name: "みかわ南岩国店",     addr: "山口県岩国市南岩国1丁目21-33",  hours: "9:00 - 17:00", tel: "0827-32-6510", lat: 34.1331, lng: 132.2245 },
     ],
     connections: {
       shopify:   { connected: true,  shop: "mikawa2020.myshopify.com", lastSync: today(), syncIntervalMin: 30 },

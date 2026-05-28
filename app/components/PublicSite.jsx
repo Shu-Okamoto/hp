@@ -14,6 +14,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MikawaAPI from "../lib/api";
+import { ShopMiniMap, directionsUrl } from "./ShopMiniMap";
 
 // ── Hook: live store ────────────────────────────────────────
 export function useStore() {
@@ -269,27 +270,23 @@ const ShopMap = ({ shops }) => (
         <p className="pub-lead">山口県岩国市内に3店舗。直接お越しください。</p>
       </div>
     </header>
-    <div className="pub-shops-grid">
-      <div className="pub-map" aria-label="店舗マップ">
-        {shops.map((s, i) => (
-          <div key={s.id} className="map-pin" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
-            <span>{i + 1}</span>
+    <div className="pub-shop-cards">
+      {shops.map((s) => (
+        <article key={s.id} className="pub-shop-card">
+          <ShopMiniMap shop={s} />
+          <div className="pub-shop-card-info">
+            <h3 className="t-mincho name">{s.name}</h3>
+            <p className="addr">{s.addr}</p>
+            <dl className="meta">
+              <div><dt>営業時間</dt><dd>{s.hours}</dd></div>
+              <div><dt>TEL</dt><dd><a href={`tel:${s.tel.replace(/[^\d]/g, "")}`}>{s.tel}</a></dd></div>
+            </dl>
+            <a className="pub-btn pub-btn-primary" target="_blank" rel="noopener noreferrer" href={directionsUrl(s)}>
+              経路を見る {Ico.arrow}
+            </a>
           </div>
-        ))}
-      </div>
-      <ul className="pub-shop-list">
-        {shops.map((s, i) => (
-          <li key={s.id}>
-            <div className="num">{i + 1}</div>
-            <div className="info">
-              <div className="name t-mincho">{s.name}</div>
-              <div className="meta">{s.addr}</div>
-              <div className="meta">営業 {s.hours}　／　TEL {s.tel}</div>
-            </div>
-            <span className="pub-link">経路 {Ico.arrow}</span>
-          </li>
-        ))}
-      </ul>
+        </article>
+      ))}
     </div>
   </section>
 );

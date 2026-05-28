@@ -332,42 +332,50 @@
 }
 
 /* Shop map + list */
-.pub-shops-grid { display: grid; gap: 22px; }
-@media (min-width: 960px) { .pub-shops-grid { grid-template-columns: 1.2fr 1fr; gap: 32px; } }
-.pub-map {
-  position: relative;
+/* Shop cards: mini Google Map + info + 経路 CTA, one per shop. */
+.pub-shop-cards {
+  display: grid; gap: 18px;
+}
+@media (min-width: 720px)  { .pub-shop-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .pub-shop-cards { grid-template-columns: repeat(3, 1fr); gap: 22px; } }
+.pub-shop-card {
+  background: var(--c-bg);
   border: 1px solid var(--c-border);
   border-radius: var(--r-lg);
-  background:
-    repeating-linear-gradient(0deg,  rgba(45,90,61,0.06) 0 1px, transparent 1px 22px),
-    repeating-linear-gradient(90deg, rgba(45,90,61,0.06) 0 1px, transparent 1px 22px),
-    var(--c-bg);
-  aspect-ratio: 4 / 3;
-  min-height: 220px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
 }
-.map-pin {
-  position: absolute; transform: translate(-50%, -100%) rotate(-45deg);
-  width: 28px; height: 28px;
-  background: var(--c-accent);
-  border-radius: 50% 50% 50% 0;
+.pub-shop-map {
+  width: 100%;
+  background: var(--c-bg-soft);
+  position: relative;
+}
+.pub-shop-map > div { width: 100%; height: 100%; }
+.pub-shop-map-fallback {
   display: grid; place-items: center;
-  color: white; font-size: 12px; font-weight: 700;
-  box-shadow: var(--e-2);
+  color: var(--c-text-sub);
+  border-bottom: 1px solid var(--c-border);
 }
-.map-pin span { transform: rotate(45deg); }
-.pub-shop-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; }
-.pub-shop-list li { display: flex; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--c-border); }
-.pub-shop-list li:last-child { border-bottom: none; }
-.pub-shop-list .num {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--c-accent); color: white;
-  display: grid; place-items: center;
-  font-weight: 700; font-size: 13px;
-  flex-shrink: 0;
+.pub-shop-map-fallback-inner {
+  text-align: center;
+  font-size: var(--fs-xs);
+  line-height: 1.6;
 }
-.pub-shop-list .info { flex: 1; min-width: 0; }
-.pub-shop-list .name { font-family: var(--f-mincho); font-size: var(--fs-lg); color: var(--c-primary); margin-bottom: 3px; }
-.pub-shop-list .meta { font-size: var(--fs-xs); color: var(--c-text-sub); line-height: 1.6; }
+.pub-shop-map-fallback-inner span { font-size: 28px; display: block; margin-bottom: 6px; }
+.pub-shop-map-fallback-inner code { font-family: var(--f-en, monospace); font-size: 11px; }
+.pub-shop-card-info {
+  padding: 16px 18px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1;
+}
+.pub-shop-card-info .name { font-size: var(--fs-lg); color: var(--c-primary); margin: 0; }
+.pub-shop-card-info .addr { font-size: var(--fs-sm); color: var(--c-text); margin: 0; line-height: 1.55; }
+.pub-shop-card-info .meta { display: grid; gap: 4px; font-size: var(--fs-xs); color: var(--c-text-sub); margin: 2px 0 0; }
+.pub-shop-card-info .meta > div { display: grid; grid-template-columns: 64px 1fr; gap: 8px; }
+.pub-shop-card-info .meta dt { color: var(--c-text-sub); margin: 0; }
+.pub-shop-card-info .meta dd { margin: 0; color: var(--c-text); }
+.pub-shop-card-info .meta a { color: inherit; text-decoration: none; }
+.pub-shop-card-info .pub-btn { margin-top: auto; align-self: flex-start; }
 
 /* Page wrapper */
 .pub-page { padding: 28px 0 32px; }
