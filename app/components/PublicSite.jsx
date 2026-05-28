@@ -529,10 +529,13 @@ export function ProductDetailPage({ handle }) {
   );
 }
 
-export function PricePage() {
+export function PricePage({ prices: initialPrices } = {}) {
   const store = useStore();
-  const featured = store.dailyPrices.filter((p) => p.featured && p.visible);
-  const rest     = store.dailyPrices.filter((p) => !p.featured && p.visible);
+  // Prefer server-rendered prices (sourced from KV) when provided; fall
+  // back to the client store so dev/preview without KV still works.
+  const all = initialPrices ?? store.dailyPrices;
+  const featured = all.filter((p) => p.featured && p.visible);
+  const rest     = all.filter((p) => !p.featured && p.visible);
   return (
     <main className="pub-page">
       <header className="pub-page-head">

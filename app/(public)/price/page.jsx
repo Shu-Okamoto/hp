@@ -1,4 +1,9 @@
 import { PricePage } from "../../components/PublicSite";
+import { getPrices } from "../../lib/prices-store";
+
+// ISR — revalidate every 30 seconds so admin edits propagate quickly
+// without each request hitting KV.
+export const revalidate = 30;
 
 export const metadata = {
   title: "今日の販売価格｜里の味みかわ",
@@ -11,6 +16,7 @@ export const metadata = {
   },
 };
 
-export default function Page() {
-  return <PricePage />;
+export default async function Page() {
+  const prices = await getPrices();
+  return <PricePage prices={prices} />;
 }

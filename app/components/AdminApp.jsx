@@ -232,29 +232,105 @@ function QuickPost() {
 }
 
 // ── Price Manager ───────────────────────────────────────────
+/**
+ * Server-backed price editor.
+ *
+ * On mount, GETs /api/prices (KV-backed). Every mutation does an
+ * optimistic local update, then PUTs the new full list. A small status
+ * pill shows save state; on failure the previous list is restored.
+ *
+ * Bulk-replace semantics keep ordering trivial — admin doesn't have a
+ * reorder UI yet, but when one is added the same PUT path covers it.
+ */
 function PriceManager() {
-  const store = useAdminStore();
+  const [prices, setPrices] = useState(null); // null = initial load
   const [draft, setDraft] = useState({});
   const [adding, setAdding] = useState(false);
   const [newRow, setNewRow] = useState({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
+  const [status, setStatus] = useState(null);    // { kind: ok|err|info, msg }
+  const [saving, setSaving] = useState(false);
 
-  const update = (id, patch) => MikawaAPI.prices.update(id, patch);
+  // Initial fetch from server.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/prices", { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        if (alive) setPrices(data);
+      } catch (e) {
+        if (alive) setStatus({ kind: "err", msg: `読み込み失敗: ${e.message}` });
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // Optimistically applies a new list, then persists.
+  const commit = async (next) => {
+    const prev = prices;
+    setPrices(next);
+    setSaving(true);
+    setStatus({ kind: "info", msg: "保存中…" });
+    try {
+      const r = await fetch("/api/prices", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      }
+      setStatus({ kind: "ok", msg: "保存しました" });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2000);
+    } catch (e) {
+      setPrices(prev); // revert
+      setStatus({ kind: "err", msg: `保存失敗: ${e.message}` });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const update = (id, patch) =>
+    commit(prices.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const flush = (id) => {
     const d = draft[id]; if (!d) return;
     if (d.priceJpy != null) update(id, { priceJpy: yenToInt(d.priceJpy) });
     setDraft((s) => { const { [id]: _, ...rest } = s; return rest; });
   };
+  const removeRow = (id) => commit(prices.filter((p) => p.id !== id));
+  const addRow = () => {
+    if (!newRow.name) return;
+    const id = `v-${Date.now().toString(36)}`;
+    commit([{ ...newRow, id, priceJpy: yenToInt(newRow.priceJpy), visible: true, featured: false }, ...prices]);
+    setNewRow({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
+    setAdding(false);
+  };
+
+  if (prices === null) {
+    return (
+      <AdminPage title="価格管理" lead="読み込み中…">
+        {status && <div className={`adm-status adm-status-${status.kind}`}>{status.msg}</div>}
+      </AdminPage>
+    );
+  }
 
   return (
     <AdminPage title="価格管理"
-      lead="毎朝の販売価格を更新。表示ON/OFFと目玉設定で公開側がリアルタイムに切り替わります。"
-      action={<button className="adm-btn" onClick={() => setAdding(true)}>＋ 品目を追加</button>}>
+      lead="毎朝の販売価格を更新。表示ON/OFFと目玉設定で公開側に即反映されます。"
+      action={
+        <div className="adm-page-action-row">
+          {status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}
+          <button className="adm-btn" onClick={() => setAdding(true)} disabled={saving}>＋ 品目を追加</button>
+        </div>
+      }>
       <table className="adm-table">
         <thead>
           <tr><th></th><th>品目</th><th>単位</th><th>価格</th><th>表示</th><th>目玉</th><th></th></tr>
         </thead>
         <tbody>
-          {store.dailyPrices.map((p) => (
+          {prices.map((p) => (
             <tr key={p.id}>
               <td><div className="adm-emoji-cell">{p.emoji}</div></td>
               <td className="t-mincho" style={{ fontSize: 14 }}>{p.name}</td>
@@ -282,7 +358,7 @@ function PriceManager() {
               </td>
               <td>
                 <button className="adm-btn-link adm-btn-danger"
-                  onClick={() => confirm(`${p.name} を削除しますか？`) && MikawaAPI.prices.remove(p.id)}>削除</button>
+                  onClick={() => confirm(`${p.name} を削除しますか？`) && removeRow(p.id)}>削除</button>
               </td>
             </tr>
           ))}
@@ -293,12 +369,7 @@ function PriceManager() {
               <td><input className="adm-input adm-input-sm" placeholder="/ 単位" value={newRow.unit} onChange={(e) => setNewRow({ ...newRow, unit: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="280" value={newRow.priceJpy} onChange={(e) => setNewRow({ ...newRow, priceJpy: e.target.value })} /></td>
               <td colSpan={3}>
-                <button className="adm-btn adm-btn-primary adm-btn-sm" onClick={async () => {
-                  if (!newRow.name) return;
-                  await MikawaAPI.prices.create({ ...newRow, priceJpy: yenToInt(newRow.priceJpy) });
-                  setNewRow({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
-                  setAdding(false);
-                }}>追加</button>
+                <button className="adm-btn adm-btn-primary adm-btn-sm" onClick={addRow}>追加</button>
                 <button className="adm-btn-link" onClick={() => setAdding(false)}>キャンセル</button>
               </td>
             </tr>
