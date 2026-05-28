@@ -24,18 +24,29 @@ import { APIProvider, Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-goo
 // Falls back to Google's DEMO_MAP_ID for zero-config deploys.
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
 
+// Guards the Maps SDK from `lat: undefined` crashes. Stale localStorage
+// data from a previous schema (or unconfigured shops) gets silently
+// filtered out instead of crashing the page.
+function withValidCoords(shops) {
+  return (shops || []).filter(
+    (s) => Number.isFinite(s.lat) && Number.isFinite(s.lng)
+  );
+}
+
 /** Fits the map viewport to include every shop pin with padding. */
 function AutoFit({ shops }) {
   const map = useMap();
   useEffect(() => {
-    if (!map || !shops?.length || typeof google === "undefined") return;
-    if (shops.length === 1) {
-      map.setCenter({ lat: shops[0].lat, lng: shops[0].lng });
+    if (!map || typeof google === "undefined") return;
+    const valid = withValidCoords(shops);
+    if (valid.length === 0) return;
+    if (valid.length === 1) {
+      map.setCenter({ lat: valid[0].lat, lng: valid[0].lng });
       map.setZoom(16);
       return;
     }
     const bounds = new google.maps.LatLngBounds();
-    shops.forEach((s) => bounds.extend({ lat: s.lat, lng: s.lng }));
+    valid.forEach((s) => bounds.extend({ lat: s.lat, lng: s.lng }));
     map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
   }, [map, shops]);
   return null;
@@ -53,9 +64,11 @@ export function MultiShopMap({ shops, height = 380 }) {
       </div>
     );
   }
+  const valid = withValidCoords(shops);
   // Initial center/zoom — overridden by AutoFit once the SDK is ready.
-  const initial = shops?.[0]
-    ? { lat: shops[0].lat, lng: shops[0].lng }
+  // Defaults to roughly central Iwakuni when nothing's plottable yet.
+  const initial = valid[0]
+    ? { lat: valid[0].lat, lng: valid[0].lng }
     : { lat: 34.15, lng: 132.20 };
   return (
     <div className="pub-shop-map" style={{ height }}>
@@ -68,8 +81,8 @@ export function MultiShopMap({ shops, height = 380 }) {
           mapTypeControl={false}
           streetViewControl={false}
           fullscreenControl={false}>
-          <AutoFit shops={shops} />
-          {shops.map((s, i) => (
+          <AutoFit shops={valid} />
+          {valid.map((s, i) => (
             <AdvancedMarker key={s.id} position={{ lat: s.lat, lng: s.lng }} title={s.name}>
               <Pin background="#d63a3a" borderColor="#a72929" glyphColor="#fff" glyph={String(i + 1)} />
             </AdvancedMarker>
