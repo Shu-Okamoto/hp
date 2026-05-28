@@ -332,29 +332,22 @@
 }
 
 /* Shop map + list */
-/* Shop cards: mini Google Map + info + 経路 CTA, one per shop. */
-.pub-shop-cards {
-  display: grid; gap: 18px;
-}
-@media (min-width: 720px)  { .pub-shop-cards { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1100px) { .pub-shop-cards { grid-template-columns: repeat(3, 1fr); gap: 22px; } }
-.pub-shop-card {
-  background: var(--c-bg);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  display: flex; flex-direction: column;
-}
+/* Shops: one combined Google Map at top, numbered cards below. The
+   numbered pins in the map correspond to the .pub-shop-card-num badges,
+   so users can map a pin to a card at a glance. */
 .pub-shop-map {
   width: 100%;
   background: var(--c-bg-soft);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
   position: relative;
+  margin-bottom: 22px;
 }
 .pub-shop-map > div { width: 100%; height: 100%; }
 .pub-shop-map-fallback {
   display: grid; place-items: center;
   color: var(--c-text-sub);
-  border-bottom: 1px solid var(--c-border);
 }
 .pub-shop-map-fallback-inner {
   text-align: center;
@@ -363,10 +356,31 @@
 }
 .pub-shop-map-fallback-inner span { font-size: 28px; display: block; margin-bottom: 6px; }
 .pub-shop-map-fallback-inner code { font-family: var(--f-en, monospace); font-size: 11px; }
+
+.pub-shop-cards { display: grid; gap: 14px; }
+@media (min-width: 720px)  { .pub-shop-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .pub-shop-cards { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+.pub-shop-card {
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 18px 18px 20px;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px 14px;
+  align-items: start;
+}
+.pub-shop-card-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #d63a3a;
+  color: #fff;
+  font-weight: 700; font-size: 14px;
+  display: grid; place-items: center;
+  margin-top: 2px;
+}
 .pub-shop-card-info {
-  padding: 16px 18px 20px;
   display: flex; flex-direction: column; gap: 10px;
-  flex: 1;
 }
 .pub-shop-card-info .name { font-size: var(--fs-lg); color: var(--c-primary); margin: 0; }
 .pub-shop-card-info .addr { font-size: var(--fs-sm); color: var(--c-text); margin: 0; line-height: 1.55; }

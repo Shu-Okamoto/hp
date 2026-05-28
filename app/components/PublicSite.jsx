@@ -14,7 +14,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MikawaAPI from "../lib/api";
-import { ShopMiniMap, directionsUrl } from "./ShopMiniMap";
+import { MultiShopMap, directionsUrl } from "./ShopsMap";
 
 // ── External links ──────────────────────────────────────────
 // One source of truth for the brand's off-site destinations. Reused by
@@ -288,10 +288,11 @@ const ShopMap = ({ shops }) => (
         <p className="pub-lead">山口県岩国市内に3店舗。直接お越しください。</p>
       </div>
     </header>
+    <MultiShopMap shops={shops} />
     <div className="pub-shop-cards">
-      {shops.map((s) => (
+      {shops.map((s, i) => (
         <article key={s.id} className="pub-shop-card">
-          <ShopMiniMap shop={s} />
+          <div className="pub-shop-card-num" aria-hidden>{i + 1}</div>
           <div className="pub-shop-card-info">
             <h3 className="t-mincho name">{s.name}</h3>
             <p className="addr">{s.addr}</p>
