@@ -233,24 +233,33 @@ function QuickPost() {
 
 // ── Price Manager ───────────────────────────────────────────
 /**
- * Server-backed price editor.
+ * Staged price editor.
  *
- * On mount, GETs /api/prices (KV-backed). Every mutation does an
- * optimistic local update, then PUTs the new full list. A small status
- * pill shows save state; on failure the previous list is restored.
+ * On mount, GETs /api/prices. Edits accumulate in local state (the
+ * "draft list"); nothing hits the server until the admin clicks 保存.
  *
- * Bulk-replace semantics keep ordering trivial — admin doesn't have a
- * reorder UI yet, but when one is added the same PUT path covers it.
+ *   serverPrices  — last known persisted state (baseline)
+ *   prices        — working copy the UI edits against
+ *   isDirty       — true when working copy differs from baseline
+ *
+ * 保存ボタンは差分件数を表示し、押下で PUT /api/prices → 成功時に
+ * baseline を引き上げ、失敗時はそのまま留まる（再試行可能）。
+ * 破棄ボタンで working copy を baseline まで戻す。離脱前 confirm で
+ * 未保存変更の取りこぼしを防ぐ。
  */
 function PriceManager() {
-  const [prices, setPrices] = useState(null); // null = initial load
+  const [serverPrices, setServerPrices] = useState(null); // baseline
+  const [prices, setPrices] = useState(null);             // working copy
   const [draft, setDraft] = useState({});
   const [adding, setAdding] = useState(false);
   const [newRow, setNewRow] = useState({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
-  const [status, setStatus] = useState(null);    // { kind: ok|err|info, msg }
+  const [status, setStatus] = useState(null);
   const [saving, setSaving] = useState(false);
+  // Bumped on discard so uncontrolled inputs (defaultValue-based) drop
+  // their typed-but-unflushed state and re-mount with baseline values.
+  const [revision, setRevision] = useState(0);
 
-  // Initial fetch from server.
+  // Initial fetch.
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -258,7 +267,9 @@ function PriceManager() {
         const r = await fetch("/api/prices", { cache: "no-store" });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
-        if (alive) setPrices(data);
+        if (!alive) return;
+        setServerPrices(data);
+        setPrices(data);
       } catch (e) {
         if (alive) setStatus({ kind: "err", msg: `読み込み失敗: ${e.message}` });
       }
@@ -266,44 +277,84 @@ function PriceManager() {
     return () => { alive = false; };
   }, []);
 
-  // Optimistically applies a new list, then persists.
-  const commit = async (next) => {
-    const prev = prices;
-    setPrices(next);
+  // Dirty detection + per-row diff count for the save-button label.
+  const isDirty = prices !== null
+    && serverPrices !== null
+    && JSON.stringify(prices) !== JSON.stringify(serverPrices);
+  const changeCount = useMemo(() => {
+    if (!isDirty || !prices || !serverPrices) return 0;
+    const baseById = Object.fromEntries(serverPrices.map((p) => [p.id, p]));
+    const nextById = Object.fromEntries(prices.map((p) => [p.id, p]));
+    const ids = new Set([...Object.keys(baseById), ...Object.keys(nextById)]);
+    let n = 0;
+    for (const id of ids) {
+      const a = baseById[id], b = nextById[id];
+      if (!a || !b) { n++; continue; }
+      if (JSON.stringify(a) !== JSON.stringify(b)) n++;
+    }
+    return n;
+  }, [prices, serverPrices, isDirty]);
+
+  // Warn before reload when unsaved.
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  // Persist the working copy.
+  const save = async () => {
+    if (!isDirty || saving) return;
     setSaving(true);
     setStatus({ kind: "info", msg: "保存中…" });
     try {
       const r = await fetch("/api/prices", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
+        body: JSON.stringify(prices),
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
         throw new Error(j.hint || j.error || `HTTP ${r.status}`);
       }
-      setStatus({ kind: "ok", msg: "保存しました" });
-      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2000);
+      setServerPrices(prices); // baseline = working copy
+      setStatus({ kind: "ok", msg: `${changeCount}件の変更を保存しました` });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2500);
     } catch (e) {
-      setPrices(prev); // revert
       setStatus({ kind: "err", msg: `保存失敗: ${e.message}` });
     } finally {
       setSaving(false);
     }
   };
 
+  // Revert working copy to baseline.
+  const discard = () => {
+    if (!isDirty) return;
+    if (!confirm(`未保存の変更 ${changeCount} 件を破棄しますか？`)) return;
+    setPrices(serverPrices);
+    setDraft({});
+    setAdding(false);
+    setStatus(null);
+    setRevision((v) => v + 1); // force input remount
+  };
+
+  // Local-only edit helpers (no network).
   const update = (id, patch) =>
-    commit(prices.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    setPrices((cur) => cur.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const flush = (id) => {
     const d = draft[id]; if (!d) return;
     if (d.priceJpy != null) update(id, { priceJpy: yenToInt(d.priceJpy) });
     setDraft((s) => { const { [id]: _, ...rest } = s; return rest; });
   };
-  const removeRow = (id) => commit(prices.filter((p) => p.id !== id));
+  const removeRow = (id) => setPrices((cur) => cur.filter((p) => p.id !== id));
   const addRow = () => {
     if (!newRow.name) return;
     const id = `v-${Date.now().toString(36)}`;
-    commit([{ ...newRow, id, priceJpy: yenToInt(newRow.priceJpy), visible: true, featured: false }, ...prices]);
+    setPrices((cur) => [
+      { ...newRow, id, priceJpy: yenToInt(newRow.priceJpy), visible: true, featured: false },
+      ...cur,
+    ]);
     setNewRow({ emoji: "🍅", name: "", priceJpy: "", unit: "/ 1パック" });
     setAdding(false);
   };
@@ -318,10 +369,17 @@ function PriceManager() {
 
   return (
     <AdminPage title="価格管理"
-      lead="毎朝の販売価格を更新。表示ON/OFFと目玉設定で公開側に即反映されます。"
+      lead="編集してから「保存」で公開反映します。保存するまでは公開側には反映されません。"
       action={
         <div className="adm-page-action-row">
           {status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}
+          {isDirty && (
+            <button className="adm-btn" onClick={discard} disabled={saving}>破棄</button>
+          )}
+          <button className="adm-btn adm-btn-primary" onClick={save}
+            disabled={!isDirty || saving}>
+            {saving ? "保存中…" : isDirty ? `保存 (${changeCount}件)` : "保存済み"}
+          </button>
           <button className="adm-btn" onClick={() => setAdding(true)} disabled={saving}>＋ 品目を追加</button>
         </div>
       }>
@@ -331,7 +389,7 @@ function PriceManager() {
         </thead>
         <tbody>
           {prices.map((p) => (
-            <tr key={p.id}>
+            <tr key={`${p.id}-${revision}`}>
               <td><div className="adm-emoji-cell">{p.emoji}</div></td>
               <td className="t-mincho" style={{ fontSize: 14 }}>{p.name}</td>
               <td><input className="adm-input adm-input-sm" defaultValue={p.unit} onBlur={(e) => update(p.id, { unit: e.target.value })} /></td>
@@ -358,7 +416,7 @@ function PriceManager() {
               </td>
               <td>
                 <button className="adm-btn-link adm-btn-danger"
-                  onClick={() => confirm(`${p.name} を削除しますか？`) && removeRow(p.id)}>削除</button>
+                  onClick={() => confirm(`${p.name} を削除しますか？（保存ボタンで確定）`) && removeRow(p.id)}>削除</button>
               </td>
             </tr>
           ))}
