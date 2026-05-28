@@ -11,9 +11,9 @@ export function generateStaticParams() {
 export function generateMetadata({ params }) {
   const post = seed().posts.find((p) => p.id === params.id);
   if (!post) {
-    return { title: "お知らせが見つかりません｜さとの味みかわ" };
+    return { title: "お知らせが見つかりません｜里の味みかわ" };
   }
-  const title = `${post.title}｜さとの味みかわ`;
+  const title = `${post.title}｜里の味みかわ`;
   return {
     title,
     description: post.body?.slice(0, 120) ?? "",

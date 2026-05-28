@@ -38,7 +38,7 @@ const AdminSidebar = ({ current, onNav, session }) => {
     <aside className="adm-side">
       <div className="adm-side-brand">
         <div className="mark">里</div>
-        <div className="name">さとの味みかわ<small>ADMIN CONSOLE</small></div>
+        <div className="name">里の味みかわ<small>ADMIN CONSOLE</small></div>
       </div>
       <div className="adm-side-user">
         <div className="who">
@@ -93,7 +93,7 @@ function AdminLogin() {
       <form className="adm-login-card" onSubmit={submit}>
         <div className="adm-login-brand">
           <div className="mark">里</div>
-          <div className="name">さとの味みかわ<small>ADMIN CONSOLE</small></div>
+          <div className="name">里の味みかわ<small>ADMIN CONSOLE</small></div>
         </div>
         <h2 className="t-mincho">管理画面にログイン</h2>
         <label className="adm-field">
@@ -190,7 +190,7 @@ function QuickPost() {
           </label>
           <label className="adm-field">
             <span>タイトル *</span>
-            <input className="adm-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="本日の入荷：愛知の朝採れトマト ..." />
+            <input className="adm-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="本日の入荷：岩国の朝採れトマト ..." />
           </label>
           <label className="adm-field">
             <span>本文</span>

@@ -12,7 +12,7 @@
  *   DELETE /api/shopify/products/[id]
  *
  * Env vars expected at deploy time:
- *   SHOPIFY_STORE_DOMAIN       e.g. mikawa.myshopify.com
+ *   SHOPIFY_STORE_DOMAIN       e.g. mikawa2020.myshopify.com
  *   SHOPIFY_STOREFRONT_TOKEN   read-only token for the storefront API
  *   SHOPIFY_ADMIN_TOKEN        write-capable token (server only)
  */

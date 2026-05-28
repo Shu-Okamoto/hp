@@ -1,4 +1,4 @@
-# さとの味みかわ — 実装プロトタイプ
+# 里の味みかわ — 実装プロトタイプ
 
 Next.js 14 (App Router) + Auth.js v5 on Vercel.
 

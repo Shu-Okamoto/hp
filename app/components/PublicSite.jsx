@@ -41,7 +41,7 @@ const Ico = {
 const Logo = ({ size = "md", inverse = false }) => (
   <div className={`pub-logo pub-logo-${size} ${inverse ? "inv" : ""}`}>
     <div className="mark">里</div>
-    <div className="name">さとの味みかわ<small>SATONOAJI MIKAWA</small></div>
+    <div className="name">里の味みかわ<small>SATONOAJI MIKAWA</small></div>
   </div>
 );
 
@@ -150,7 +150,7 @@ const Hero = () => (
       <div className="pub-hero-text">
         <div className="t-label" style={{ color: "var(--c-green-600)" }}>From Farm to Table</div>
         <h1 className="t-mincho">農家と共に、<br/>畑から<span className="accent">食卓</span>へ。</h1>
-        <p>昔ながらの八百屋が届ける、新しい食のかたち。<br/>愛知の畑から、毎日の食卓へ。</p>
+        <p>昔ながらの八百屋が届ける、新しい食のかたち。<br/>岩国の畑から、毎日の食卓へ。</p>
         <div className="pub-hero-ctas">
           <Link className="pub-btn pub-btn-primary" href="/products">商品を見る {Ico.arrow}</Link>
           <Link className="pub-btn pub-btn-ghost" href="/agri">ブランドの想い</Link>
@@ -159,7 +159,7 @@ const Hero = () => (
       <div className="pub-hero-art" aria-hidden>
         <div className="art-photo art-1" />
         <div className="art-photo art-2" />
-        <div className="art-stamp t-en">est. 2024</div>
+        <div className="art-stamp t-en">est. 1989</div>
       </div>
     </div>
   </section>
@@ -266,7 +266,7 @@ const ShopMap = ({ shops }) => (
       <div>
         <div className="t-label">Our Shops</div>
         <h3 className="t-mincho">店舗一覧</h3>
-        <p className="pub-lead">愛知県内に3店舗。直接お越しください。</p>
+        <p className="pub-lead">山口県岩国市内に3店舗。直接お越しください。</p>
       </div>
     </header>
     <div className="pub-shops-grid">
@@ -343,7 +343,7 @@ const Footer = ({ shops }) => (
       </div>
     </div>
     <div className="pub-footer-legal">
-      <span>運営：株式会社さとの味みかわ</span>
+      <span>運営：mikawa.co.,ltd. 里の味みかわ</span>
       <span>特定商取引法 ／ プライバシーポリシー</span>
       <span className="t-en copy">© 2026 SATONOAJI MIKAWA</span>
     </div>
@@ -673,7 +673,7 @@ export function ShopsPage() {
       <header className="pub-page-head">
         <div className="t-label">Shops</div>
         <h1 className="t-mincho">店舗一覧</h1>
-        <p>愛知県内に3店舗。営業時間・アクセス情報をご案内します。</p>
+        <p>山口県岩国市内に3店舗。営業時間・アクセス情報をご案内します。</p>
       </header>
       <ShopMap shops={store.shops} />
     </main>

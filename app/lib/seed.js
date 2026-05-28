@@ -31,20 +31,20 @@ export function seed() {
       { id: "v-onion",   emoji: "🧅", name: "玉ねぎ",       priceJpy: 100, unit: "/ 2玉",   featured: false, visible: true },
     ],
     posts: [
-      { id: "n-001", date: today(), source: "ig",    title: "本日の入荷：愛知の朝採れトマトが入りました", body: "今朝、契約農家さんから真っ赤に熟したトマトが届きました。1パック280円。なくなり次第終了です。", emoji: "🍅", igHandle: "@satonoaji_mikawa", channels: ["ig","web"] },
+      { id: "n-001", date: today(), source: "ig",    title: "本日の入荷：岩国の朝採れトマトが入りました", body: "今朝、契約農家さんから真っ赤に熟したトマトが届きました。1パック280円。なくなり次第終了です。", emoji: "🍅", igHandle: "@satonoajimikawa", channels: ["ig","web"] },
       { id: "n-002", date: today(), source: "line",  title: "週末セール開催のお知らせ・15時から店頭にて", body: "土日15時から夕方限定の見切りセールを開催します。野菜・お惣菜が最大半額！", emoji: "🎁", channels: ["line","web"] },
       { id: "n-003", date: today(), source: "event", title: "5月『畑の収穫体験』参加者募集中", body: "農家のおじちゃんと一緒に、畑で野菜を収穫する半日体験。お子さま参加歓迎。", emoji: "🌱", channels: ["web"] },
       { id: "n-004", date: today(), source: "news",  title: "ゴールデンウィーク営業時間のご案内", body: "5/3-5/6は通常営業。5/7のみ臨時休業させていただきます。", emoji: "📅", channels: ["web","line"] },
     ],
     shops: [
-      { id: "s-honten", name: "みかわ本店",   addr: "愛知県岡崎市本町1-23-4",  hours: "9:00 - 19:00",  tel: "0564-00-0000", x: 28, y: 62 },
-      { id: "s-nishio", name: "みかわ西尾店", addr: "愛知県西尾市駅前2-5-12",  hours: "9:00 - 19:00",  tel: "0563-00-0000", x: 56, y: 73 },
-      { id: "s-toyota", name: "みかわ豊田店", addr: "愛知県豊田市新明町6-7-8", hours: "10:00 - 20:00", tel: "0565-00-0000", x: 78, y: 38 },
+      { id: "s-honbu",    name: "みかわ本社惣菜本部", addr: "山口県岩国市尾津町5-11-1",    hours: "8:00 - 17:00", tel: "0827-32-1346", x: 62, y: 32 },
+      { id: "s-nishi",    name: "みかわ西岩国店",     addr: "山口県岩国市岩国2丁目16-2",   hours: "9:00 - 17:00", tel: "0827-43-4773", x: 30, y: 55 },
+      { id: "s-minami",   name: "みかわ南岩国店",     addr: "山口県岩国市南岩国1丁目21-33", hours: "9:00 - 17:00", tel: "0827-32-6510", x: 52, y: 78 },
     ],
     connections: {
-      shopify:   { connected: true,  shop: "mikawa.myshopify.com",   lastSync: today(), syncIntervalMin: 30 },
-      instagram: { connected: true,  handle: "@satonoaji_mikawa",     lastSync: today(), syncIntervalMin: 15 },
-      line:      { connected: true,  channel: "里の味みかわ公式",       lastSync: today(), reach: 1284 },
+      shopify:   { connected: true,  shop: "mikawa2020.myshopify.com", lastSync: today(), syncIntervalMin: 30 },
+      instagram: { connected: true,  handle: "@satonoajimikawa",       lastSync: today(), syncIntervalMin: 15 },
+      line:      { connected: true,  channel: "里の味みかわ LINE公式",    lastSync: today(), reach: 1284 },
     },
   };
 }

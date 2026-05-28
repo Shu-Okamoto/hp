@@ -8,7 +8,7 @@ import { auth } from "../../../../auth";
  * the client bundle.
  *
  * Env vars (set in Vercel → Project Settings → Environment Variables):
- *   SHOPIFY_STORE_DOMAIN     e.g. mikawa.myshopify.com
+ *   SHOPIFY_STORE_DOMAIN     e.g. mikawa2020.myshopify.com
  *   SHOPIFY_STOREFRONT_TOKEN read-only token (used by GET)
  *   SHOPIFY_ADMIN_TOKEN      write-capable token (used by POST/DELETE)
  *

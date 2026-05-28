@@ -11,15 +11,15 @@ const siteUrl =
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "さとの味みかわ — 農家と共に、畑から食卓へ",
+    default: "里の味みかわ — 農家と共に、畑から食卓へ",
     template: "%s",
   },
-  description: "愛知の畑から、毎日の食卓へ。今日の販売価格・新鮮な野菜・お弁当・加工品を、農家直送でお届けします。",
-  applicationName: "さとの味みかわ",
-  authors: [{ name: "株式会社さとの味みかわ" }],
-  keywords: ["八百屋", "愛知", "三河", "農家直送", "野菜", "弁当", "今日の価格", "アグリパートナーズ"],
+  description: "岩国の畑から、毎日の食卓へ。今日の販売価格・新鮮な野菜・お弁当・加工品を、農家直送でお届けします。",
+  applicationName: "里の味みかわ",
+  authors: [{ name: "mikawa.co.,ltd. 里の味みかわ" }],
+  keywords: ["八百屋", "山口", "岩国", "農家直送", "野菜", "弁当", "今日の価格", "アグリパートナーズ"],
   openGraph: {
-    siteName: "さとの味みかわ",
+    siteName: "里の味みかわ",
     type: "website",
     locale: "ja_JP",
   },

@@ -22,9 +22,9 @@ export function generateStaticParams() {
 export function generateMetadata({ params }) {
   const product = seed().products.find((p) => p.handle === params.handle);
   if (!product) {
-    return { title: "商品が見つかりません｜さとの味みかわ" };
+    return { title: "商品が見つかりません｜里の味みかわ" };
   }
-  const title = `${product.title}｜さとの味みかわ`;
+  const title = `${product.title}｜里の味みかわ`;
   const description = product.desc;
   return {
     title,
