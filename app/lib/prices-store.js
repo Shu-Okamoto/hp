@@ -3,10 +3,10 @@ import { serviceClient, anonClient } from "./supabase";
 import { seed } from "./seed";
 
 /**
- * Server-side daily-price store backed by Supabase.
+ * Server-side daily-price store backed by Supabase (table `hp.prices`).
  *
  * Reads go through the anon client (gated by an "anyone can read"
- * RLS policy on public.prices). Writes go through the service role
+ * RLS policy on hp.prices). Writes go through the service role
  * client, which bypasses RLS — required because we authenticate the
  * admin via Auth.js, not Supabase Auth, so we have no per-user JWT to
  * present.
@@ -21,7 +21,8 @@ import { seed } from "./seed";
  *   SUPABASE_SERVICE_ROLE_KEY       — server-only writes (secret)
  *
  * Schema lives in supabase/migrations/001_prices.sql — run it once via
- * Supabase Dashboard → SQL Editor.
+ * Supabase Dashboard → SQL Editor, then add `hp` to Exposed schemas in
+ * Project Settings → API.
  */
 
 const TABLE = "prices";

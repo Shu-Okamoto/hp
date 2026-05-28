@@ -128,12 +128,18 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
 
 ## Supabase セットアップ（価格管理）
 
+すべてのアプリ用テーブルは **`hp` スキーマ** に置きます（社内 DX 統合用の名前空間分離）。
+
 1. https://supabase.com/dashboard → **New project** で作成（free tier で十分）
 2. **Project Settings → API** で URL と 2 つの key をメモ:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (秘匿、サーバ専用)
-3. **SQL Editor → New query** を開き、`supabase/migrations/001_prices.sql` の内容を貼り付けて Run。
-   - `public.prices` テーブル + RLS ポリシー + 初期 8 行 が作成されます。
-4. Vercel → Project → Environment Variables に上記 3 つを追加 → Redeploy。
-5. `/admin → 価格管理` で値を変更 → 別ブラウザで `/price` を開いて反映を確認。
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY`（秘匿、サーバ専用）
+3. 同じ画面 **Project Settings → API → "Exposed schemas"** に `hp` を追加（既定値 `public` のうしろにカンマ区切りで `public, hp` のように）。
+   - これを忘れると PostgREST が `hp.*` を返さず、anon 経由の読み取りが 404 になります。
+4. **SQL Editor → New query** を開き、`supabase/migrations/001_prices.sql` の内容を貼り付けて **Run**。
+   - `hp` スキーマ作成 + `hp.prices` テーブル + RLS ポリシー + 権限付与 + 初期 8 行が一括で投入されます。
+5. Vercel → Project → Environment Variables に上記 3 つを追加 → **Redeploy**。
+6. `/admin → 価格管理` で値を変更 → 別ブラウザで `/price` を開いて反映を確認。
+
+将来テーブルを増やす場合（お知らせ・店舗マスタなど）は `supabase/migrations/002_*.sql` のように追番し、同じく `hp` スキーマに作成してください。

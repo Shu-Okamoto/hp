@@ -49,7 +49,7 @@ export async function PUT(req) {
     if (e.code === "SUPABASE_NOT_CONFIGURED") {
       return Response.json({
         error: "Supabase not configured",
-        hint: "NEXT_PUBLIC_SUPABASE_URL と SUPABASE_SERVICE_ROLE_KEY を Vercel の Environment Variables に設定し、supabase/migrations/001_prices.sql を Supabase の SQL Editor で実行してください。",
+        hint: "(1) NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY を Vercel の Environment Variables に設定。(2) supabase/migrations/001_prices.sql を Supabase の SQL Editor で実行。(3) Project Settings → API → Exposed schemas に hp を追加。",
       }, { status: 503 });
     }
     return Response.json({ error: e.message }, { status: 500 });
