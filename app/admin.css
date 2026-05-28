@@ -266,7 +266,36 @@ textarea.adm-input { resize: vertical; line-height: 1.6; }
 .adm-status-info { background: rgba(45,90,61,0.1); color: var(--c-primary); }
 .adm-status-err { background: rgba(184,66,58,0.1); color: #b8423a; }
 .adm-status-pill { margin: 0; padding: 6px 10px; font-size: 11px; }
-.adm-page-action-row { display: flex; align-items: center; gap: 10px; }
+.adm-page-action-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Quick Post — image picker + fanout per-channel result list. */
+.adm-image-picker { display: flex; flex-direction: column; gap: 8px; }
+.adm-image-preview {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+  background: var(--c-bg-soft, #fafaf8);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+}
+.adm-image-preview img {
+  display: block; max-width: 100%; max-height: 220px;
+  object-fit: contain;
+  border-radius: var(--r-sm, 6px);
+}
+.adm-fanout {
+  margin: 10px 0; padding: 0; list-style: none;
+  font-size: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.adm-fanout li {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+.adm-fanout li:last-child { border-bottom: none; }
+.adm-fanout li.ok { background: rgba(6,164,72,0.06); color: var(--c-text); }
+.adm-fanout li.err { background: rgba(184,66,58,0.06); color: #8a322c; }
 
 /* Table */
 .adm-table {

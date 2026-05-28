@@ -1,4 +1,7 @@
 import { ProductsPage } from "../../components/PublicSite";
+import { getProducts } from "../../lib/products-store";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "商品・メニュー｜里の味みかわ",
@@ -11,6 +14,7 @@ export const metadata = {
   },
 };
 
-export default function Page() {
-  return <ProductsPage />;
+export default async function Page() {
+  const products = await getProducts();
+  return <ProductsPage products={products} />;
 }

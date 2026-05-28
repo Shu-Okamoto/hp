@@ -70,8 +70,8 @@ npm start
 | `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン | real 時 (POST/DELETE) |
 | `INSTAGRAM_BUSINESS_ID` | Instagram Graph API のビジネスID | real 時 |
 | `INSTAGRAM_ACCESS_TOKEN` | 長期アクセストークン | real 時 |
-| `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API | real 時 |
-| `LINE_CHANNEL_SECRET` | LINE Messaging API | real 時 |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API (Quick Post の broadcast 配信に使用) | LINE 配信時 |
+| `LINE_CHANNEL_SECRET` | LINE Messaging API (将来 webhook 受信を実装する時用) | – |
 
 `NEXT_PUBLIC_API_MODE` が未設定または `mock` のとき、Shopify/IG/LINE の呼び出しは
 すべて `localStorage` 上のモックに向かいます（既定）。`real` に切替えると
@@ -126,7 +126,7 @@ public/wireframes/            旧ワイヤーフレーム/デザインキャン�
 supabase/migrations/          価格テーブル等のスキーマ SQL（手動実行）
 ```
 
-## Supabase セットアップ（価格管理）
+## Supabase セットアップ
 
 すべてのアプリ用テーブルは **`hp` スキーマ** に置きます（社内 DX 統合用の名前空間分離）。
 
@@ -135,11 +135,31 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` → `SUPABASE_SERVICE_ROLE_KEY`（秘匿、サーバ専用）
-3. 同じ画面 **Project Settings → API → "Exposed schemas"** に `hp` を追加（既定値 `public` のうしろにカンマ区切りで `public, hp` のように）。
-   - これを忘れると PostgREST が `hp.*` を返さず、anon 経由の読み取りが 404 になります。
-4. **SQL Editor → New query** を開き、`supabase/migrations/001_prices.sql` の内容を貼り付けて **Run**。
-   - `hp` スキーマ作成 + `hp.prices` テーブル + RLS ポリシー + 権限付与 + 初期 8 行が一括で投入されます。
-5. Vercel → Project → Environment Variables に上記 3 つを追加 → **Redeploy**。
-6. `/admin → 価格管理` で値を変更 → 別ブラウザで `/price` を開いて反映を確認。
+3. **Project Settings → API → "Exposed schemas"** に `hp` を追加（`public, hp` のようにカンマ区切り）。
+4. **SQL Editor → New query** で以下を順に Run:
+   - `supabase/migrations/001_prices.sql` — `hp.prices` テーブル
+   - `supabase/migrations/002_posts.sql` — `hp.posts` テーブル（お知らせ）
+   - `supabase/migrations/003_products.sql` — `hp.products` テーブル
+   - `supabase/migrations/004_storage.sql` — `post-images` Storage バケット（画像アップロード用、public）
+5. Vercel → Environment Variables に上記 3 つを追加 → **Redeploy**。
+6. 動作確認:
+   - `/admin → 価格管理` で値を変更 → `/price` で反映
+   - `/admin → クイック投稿` で投稿 → `/news` で反映
+   - `/admin → 商品管理` で編集 → `/products` で反映
 
-将来テーブルを増やす場合（お知らせ・店舗マスタなど）は `supabase/migrations/002_*.sql` のように追番し、同じく `hp` スキーマに作成してください。
+### LINE 配信を有効にする
+
+クイック投稿の「LINE 配信」を本物にするには:
+
+1. https://developers.line.biz/ で LINE Developers コンソール
+2. プロバイダ + Messaging API チャネルを作成（既存があればそれでOK）
+3. **Channel access token (long-lived)** を発行
+4. Vercel → Environment Variables に `LINE_CHANNEL_ACCESS_TOKEN` を追加して Redeploy
+
+未設定でもクイック投稿自体は動作します（LINE 配信は `LINE_CHANNEL_ACCESS_TOKEN not set` 失敗として記録）。画像を添付すると text + image の 2 メッセージとして broadcast されます。
+
+### Instagram 投稿について
+
+現状未実装。Meta Graph API の `instagram_content_publish` 権限取得にはアプリレビューが必要で、運用負荷も大きいため、現バージョンでは Quick Post の Instagram チェックは「記録のみ」（社内向け配信予告のメモ）として動作します。実投稿は LINE/Instagram 公式アプリから手動で行ってください。
+
+将来テーブルを増やす場合は `supabase/migrations/005_*.sql` のように追番し、同じく `hp` スキーマに作成してください。

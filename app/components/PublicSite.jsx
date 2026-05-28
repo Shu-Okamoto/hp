@@ -435,8 +435,9 @@ export function HomePage() {
   );
 }
 
-export function ProductsPage() {
+export function ProductsPage({ products: initialProducts } = {}) {
   const store = useStore();
+  const products = initialProducts ?? store.products;
   return (
     <main className="pub-page">
       <header className="pub-page-head">
@@ -444,14 +445,18 @@ export function ProductsPage() {
         <h1 className="t-mincho">商品・メニュー</h1>
         <p>農家直送の旬から、加工品・お弁当まで。気になるものをタップしてください。</p>
       </header>
-      <ProductGrid products={store.products} heading={false} />
+      <ProductGrid products={products} heading={false} />
     </main>
   );
 }
 
-export function ProductDetailPage({ handle }) {
+export function ProductDetailPage({ product: serverProduct, handle, related: serverRelated } = {}) {
+  // Server-rendered pages pass `product` directly; legacy callers (the
+  // /dev impl host or tests) may still pass `handle` and rely on the
+  // client store. We support both.
   const store = useStore();
-  const product = store.products.find((p) => p.handle === handle || p.id === handle);
+  const product = serverProduct
+    ?? store.products.find((p) => p.handle === handle || p.id === handle);
   if (!product) {
     return (
       <main className="pub-page">
@@ -468,7 +473,8 @@ export function ProductDetailPage({ handle }) {
       </main>
     );
   }
-  const related = store.products.filter((p) => p.id !== product.id).slice(0, 3);
+  const related = serverRelated
+    ?? store.products.filter((p) => p.id !== product.id).slice(0, 3);
   return (
     <main className="pub-page pub-detail">
       <div className="pub-detail-head">
@@ -579,8 +585,9 @@ export function PricePage({ prices: initialPrices } = {}) {
   );
 }
 
-export function NewsPage() {
+export function NewsPage({ posts: initialPosts } = {}) {
   const store = useStore();
+  const allPosts = initialPosts ?? store.posts;
   const [filter, setFilter] = useState("all");
   const tabs = [
     { key: "all",   label: "すべて" },
@@ -589,7 +596,7 @@ export function NewsPage() {
     { key: "event", label: "イベント" },
     { key: "news",  label: "お知らせ" },
   ];
-  const filtered = filter === "all" ? store.posts : store.posts.filter((p) => p.source === filter);
+  const filtered = filter === "all" ? allPosts : allPosts.filter((p) => p.source === filter);
   return (
     <main className="pub-page">
       <header className="pub-page-head">
@@ -609,9 +616,9 @@ export function NewsPage() {
   );
 }
 
-export function NewsDetailPage({ id }) {
+export function NewsDetailPage({ post: serverPost, id, related: serverRelated } = {}) {
   const store = useStore();
-  const post = store.posts.find((p) => p.id === id);
+  const post = serverPost ?? store.posts.find((p) => p.id === id);
   if (!post) {
     return (
       <main className="pub-page">
@@ -629,7 +636,7 @@ export function NewsDetailPage({ id }) {
     );
   }
   const m = sourceMeta[post.source] || sourceMeta.news;
-  const related = store.posts.filter((p) => p.id !== post.id).slice(0, 4);
+  const related = serverRelated ?? store.posts.filter((p) => p.id !== post.id).slice(0, 4);
   return (
     <main className="pub-page pub-detail">
       <div className="pub-detail-head">
@@ -649,6 +656,11 @@ export function NewsDetailPage({ id }) {
           </div>
           <h1 className="t-mincho">{post.title}</h1>
         </div>
+        {post.imageUrl && (
+          <div className="pub-detail-news-image">
+            <img src={post.imageUrl} alt={post.title} />
+          </div>
+        )}
         <div className="pub-detail-news-body">
           <p>{post.body}</p>
         </div>

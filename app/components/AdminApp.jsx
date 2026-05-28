@@ -156,25 +156,65 @@ function QuickPost() {
   const [emoji, setEmoji] = useState("📣");
   const [title, setTitle] = useState("");
   const [body,  setBody]  = useState("");
-  const [channels, setChannels] = useState({ web: true, line: true, ig: true });
+  const [channels, setChannels] = useState({ web: true, line: true, ig: false });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [status, setStatus] = useState(null);
+  const [fanout, setFanout] = useState(null);
+  const [busy, setBusy] = useState(false);
+
   const toggle = (k) => setChannels((c) => ({ ...c, [k]: !c[k] }));
+
+  const onPickImage = (e) => {
+    const f = e.target.files?.[0] || null;
+    setImageFile(f);
+    setImagePreview(f ? URL.createObjectURL(f) : null);
+  };
+  const clearImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
 
   const submit = async () => {
     if (!title.trim()) { setStatus({ kind: "err", msg: "タイトルを入力してください" }); return; }
     const ch = Object.entries(channels).filter(([, v]) => v).map(([k]) => k);
     if (ch.length === 0) { setStatus({ kind: "err", msg: "配信先を1つ以上選んでください" }); return; }
-    setStatus({ kind: "info", msg: "配信中..." });
-    await MikawaAPI.news.post({ title, body, emoji, channels: ch, source: ch[0] });
-    setStatus({ kind: "ok", msg: `${ch.map((c) => ({web:"サイト",line:"LINE",ig:"Instagram"}[c])).join("・")} に投稿しました` });
-    setTitle(""); setBody("");
-    setTimeout(() => setStatus(null), 3500);
+    setBusy(true);
+    setStatus({ kind: "info", msg: "配信中…" });
+    setFanout(null);
+
+    const fd = new FormData();
+    fd.append("title", title);
+    fd.append("body", body);
+    fd.append("emoji", emoji);
+    fd.append("source", ch[0]);
+    fd.append("channels", ch.join(","));
+    if (imageFile) fd.append("image", imageFile);
+
+    try {
+      const r = await fetch("/api/posts", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      setFanout(j.fanout || {});
+      const summary = Object.entries(j.fanout || {})
+        .map(([k, v]) => `${({web:"サイト",line:"LINE",ig:"Instagram"})[k] || k}: ${v.ok ? "✓" : "✗"}`)
+        .join("　");
+      setStatus({ kind: "ok", msg: summary || "投稿しました" });
+      // Reset form
+      setTitle(""); setBody("");
+      clearImage();
+    } catch (e) {
+      setStatus({ kind: "err", msg: `配信失敗: ${e.message}` });
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const presets = ["📣","🍅","🥒","🥬","🌽","🌱","🎁","📅","🔥"];
+  const presets = ["📣","🍅","🥒","🥬","🌽","🌱","🎁","📅","🔥","📸"];
 
   return (
-    <AdminPage title="クイック投稿" lead="サイト・LINE・Instagram に同時配信。1か所の入力で完結します。">
+    <AdminPage title="クイック投稿" lead="サイト・LINE に同時配信。画像を添付するとLINEにも画像付きで送られます。Instagramは現在 admin での自動配信に未対応です（チェックを入れても投稿は記録のみ）。">
       <div className="adm-grid two">
         <section className="adm-card">
           <h3>① 内容を入力</h3>
@@ -196,6 +236,19 @@ function QuickPost() {
             <span>本文</span>
             <textarea className="adm-input" rows={6} value={body} onChange={(e) => setBody(e.target.value)} placeholder="販売価格・販売開始時間・なくなり次第終了など" />
           </label>
+          <label className="adm-field">
+            <span>画像（任意）</span>
+            <div className="adm-image-picker">
+              {imagePreview ? (
+                <div className="adm-image-preview">
+                  <img src={imagePreview} alt="プレビュー" />
+                  <button type="button" className="adm-btn-link adm-btn-danger" onClick={clearImage}>画像を削除</button>
+                </div>
+              ) : (
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onPickImage} className="adm-input" />
+              )}
+            </div>
+          </label>
         </section>
 
         <section className="adm-card">
@@ -203,7 +256,7 @@ function QuickPost() {
           <div className="adm-channels">
             <ChannelChip active={channels.web}  onToggle={() => toggle("web")}  color="#2d5a3d">サイト掲載</ChannelChip>
             <ChannelChip active={channels.line} onToggle={() => toggle("line")} color="#06a448">LINE 配信</ChannelChip>
-            <ChannelChip active={channels.ig}   onToggle={() => toggle("ig")}   color="#c8703a">Instagram</ChannelChip>
+            <ChannelChip active={channels.ig}   onToggle={() => toggle("ig")}   color="#c8703a">Instagram（記録のみ）</ChannelChip>
           </div>
           <div className="adm-preview">
             <div className="adm-preview-head">プレビュー</div>
@@ -218,12 +271,29 @@ function QuickPost() {
                 </div>
                 <div className="title t-mincho">{title || "（タイトル未入力）"}</div>
                 <p className="body" style={{ whiteSpace: "pre-line" }}>{body || "本文プレビューはここに表示されます。"}</p>
+                {imagePreview && (
+                  <div style={{ marginTop: 10, maxWidth: 240 }}>
+                    <img src={imagePreview} alt="" style={{ width: "100%", borderRadius: 8 }} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
+          {fanout && (
+            <ul className="adm-fanout">
+              {Object.entries(fanout).map(([k, v]) => (
+                <li key={k} className={v.ok ? "ok" : "err"}>
+                  <b>{({web:"サイト掲載",line:"LINE 配信",ig:"Instagram"})[k] || k}</b>
+                  {v.ok ? " — 完了" : ` — 失敗: ${v.reason || v.body || `HTTP ${v.status}`}`}
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="adm-actions">
             {status && <div className={`adm-status adm-status-${status.kind}`}>{status.msg}</div>}
-            <button className="adm-btn adm-btn-primary" onClick={submit}>配信する</button>
+            <button className="adm-btn adm-btn-primary" onClick={submit} disabled={busy}>
+              {busy ? "配信中…" : "配信する"}
+            </button>
           </div>
         </section>
       </div>
@@ -440,25 +510,88 @@ function PriceManager() {
 
 // ── News Manager ────────────────────────────────────────────
 function NewsManager() {
-  const store = useAdminStore();
+  const { data: session } = useSession();
+  const isOwner = session?.user?.role === "owner";
+  const [posts, setPosts] = useState(null);
+  const [busy, setBusy] = useState(null);
+  const [status, setStatus] = useState(null);
+
+  const load = async () => {
+    try {
+      const r = await fetch("/api/posts", { cache: "no-store" });
+      const data = await r.json();
+      setPosts(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setStatus({ kind: "err", msg: `読み込み失敗: ${e.message}` });
+    }
+  };
+  useEffect(() => { load(); }, []);
+
+  const archive = async (id) => {
+    if (!confirm("この投稿をアーカイブ（非公開化）しますか？")) return;
+    setBusy(id);
+    try {
+      const r = await fetch(`/api/posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: true }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error || `HTTP ${r.status}`);
+      setPosts((cur) => cur.filter((p) => p.id !== id));
+      setStatus({ kind: "ok", msg: "アーカイブしました" });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2000);
+    } catch (e) {
+      setStatus({ kind: "err", msg: `失敗: ${e.message}` });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const remove = async (id) => {
+    if (!confirm("この投稿を完全に削除しますか？")) return;
+    setBusy(id);
+    try {
+      const r = await fetch(`/api/posts/${id}`, { method: "DELETE" });
+      if (!r.ok && r.status !== 204) throw new Error(`HTTP ${r.status}`);
+      setPosts((cur) => cur.filter((p) => p.id !== id));
+      setStatus({ kind: "ok", msg: "削除しました" });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2000);
+    } catch (e) {
+      setStatus({ kind: "err", msg: `失敗: ${e.message}` });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (posts === null) {
+    return <AdminPage title="お知らせ管理" lead="読み込み中…" />;
+  }
+
   return (
-    <AdminPage title="お知らせ管理" lead="過去の投稿を編集・アーカイブ。配信先タグでフィルタも可能。">
+    <AdminPage title="お知らせ管理"
+      lead="クイック投稿で配信した過去の投稿。アーカイブで公開非表示、削除で完全消去。"
+      action={status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}>
       <table className="adm-table">
         <thead>
           <tr><th>日付</th><th>配信先</th><th>タイトル</th><th></th></tr>
         </thead>
         <tbody>
-          {store.posts.map((n) => (
+          {posts.length === 0 && (
+            <tr><td colSpan={4} style={{ padding: 24, color: "var(--c-text-sub)", textAlign: "center" }}>投稿はまだありません。</td></tr>
+          )}
+          {posts.map((n) => (
             <tr key={n.id}>
               <td className="t-en" style={{ fontSize: 12, color: "var(--c-text-sub)" }}>{n.date}</td>
               <td>
-                {n.channels.includes("web")  && <span className="pub-tag news">サイト</span>}{" "}
-                {n.channels.includes("line") && <span className="pub-tag line">LINE</span>}{" "}
-                {n.channels.includes("ig")   && <span className="pub-tag ig">IG</span>}
+                {n.channels?.includes("web")  && <span className="pub-tag news">サイト</span>}{" "}
+                {n.channels?.includes("line") && <span className="pub-tag line">LINE</span>}{" "}
+                {n.channels?.includes("ig")   && <span className="pub-tag ig">IG</span>}
               </td>
               <td>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>{n.emoji}</span>
+                  {n.imageUrl
+                    ? <img src={n.imageUrl} alt="" style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 6 }} />
+                    : <span style={{ fontSize: 18 }}>{n.emoji}</span>}
                   <div>
                     <div className="t-mincho" style={{ color: "var(--c-text)", fontSize: 14 }}>{n.title}</div>
                     <div style={{ fontSize: 12, color: "var(--c-text-sub)", marginTop: 3 }}>{n.body?.slice(0, 60)}{n.body?.length > 60 ? "…" : ""}</div>
@@ -466,7 +599,10 @@ function NewsManager() {
                 </div>
               </td>
               <td>
-                <button className="adm-btn-link adm-btn-danger" onClick={() => confirm("この投稿を削除しますか？") && MikawaAPI.news.remove(n.id)}>削除</button>
+                <button className="adm-btn-link" onClick={() => archive(n.id)} disabled={busy === n.id}>アーカイブ</button>
+                {isOwner && (
+                  <button className="adm-btn-link adm-btn-danger" onClick={() => remove(n.id)} disabled={busy === n.id}>削除</button>
+                )}
               </td>
             </tr>
           ))}
@@ -477,53 +613,168 @@ function NewsManager() {
 }
 
 // ── Product Manager ─────────────────────────────────────────
+/**
+ * Staged product editor.
+ *
+ * Same submit-button model as PriceManager: GET /api/products on mount,
+ * edits accumulate in the working copy, 保存 PUTs the full list. Edit
+ * pane on the right reads/writes the working copy entry.
+ */
 function ProductManager() {
-  const store = useAdminStore();
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ title: "", category: "", priceJpy: "", unit: "", desc: "", imgTone: "green" });
+  const [serverProducts, setServerProducts] = useState(null);
+  const [products, setProducts] = useState(null);
+  const [editingId, setEditingId] = useState(null);  // "new", a product id, or null
+  const [status, setStatus] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const open = (p) => { setEditing(p?.id || "new"); setForm(p ? { ...p, priceJpy: String(p.priceJpy) } : { title: "", category: "看板", priceJpy: "", unit: "", desc: "", imgTone: "green" }); };
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/products?all=1", { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        if (!alive) return;
+        setServerProducts(data);
+        setProducts(data);
+      } catch (e) {
+        if (alive) setStatus({ kind: "err", msg: `読み込み失敗: ${e.message}` });
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const isDirty = products !== null && serverProducts !== null
+    && JSON.stringify(products) !== JSON.stringify(serverProducts);
+  const changeCount = useMemo(() => {
+    if (!isDirty) return 0;
+    const baseById = Object.fromEntries(serverProducts.map((p) => [p.id, p]));
+    const nextById = Object.fromEntries(products.map((p) => [p.id, p]));
+    const ids = new Set([...Object.keys(baseById), ...Object.keys(nextById)]);
+    let n = 0;
+    for (const id of ids) {
+      const a = baseById[id], b = nextById[id];
+      if (!a || !b) { n++; continue; }
+      if (JSON.stringify(a) !== JSON.stringify(b)) n++;
+    }
+    return n;
+  }, [products, serverProducts, isDirty]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
   const save = async () => {
-    const payload = { ...form, priceJpy: yenToInt(form.priceJpy) };
-    if (editing && editing !== "new") payload.id = editing;
-    await MikawaAPI.shopify.upsertProduct(payload);
-    setEditing(null);
+    if (!isDirty || saving) return;
+    setSaving(true);
+    setStatus({ kind: "info", msg: "保存中…" });
+    try {
+      const r = await fetch("/api/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(products),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      setServerProducts(products);
+      setStatus({ kind: "ok", msg: `${changeCount}件の変更を保存しました` });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2500);
+    } catch (e) {
+      setStatus({ kind: "err", msg: `保存失敗: ${e.message}` });
+    } finally {
+      setSaving(false);
+    }
   };
-  const remove = (id) => confirm("削除しますか？") && MikawaAPI.shopify.deleteProduct(id);
+
+  const discard = () => {
+    if (!isDirty) return;
+    if (!confirm(`未保存の変更 ${changeCount} 件を破棄しますか？`)) return;
+    setProducts(serverProducts);
+    setEditingId(null);
+    setStatus(null);
+  };
+
+  const removeProduct = (id) => {
+    if (!confirm("削除しますか？（保存ボタンで確定）")) return;
+    setProducts((cur) => cur.filter((p) => p.id !== id));
+    if (editingId === id) setEditingId(null);
+  };
+
+  const startNew = () => {
+    const id = `p-${Date.now().toString(36)}`;
+    const newP = {
+      id, handle: `new-${id}`, title: "新規商品", category: "看板",
+      priceJpy: 0, unit: "", desc: "", imgTone: "green", visible: true,
+    };
+    setProducts((cur) => [newP, ...cur]);
+    setEditingId(id);
+  };
+
+  const updateProduct = (id, patch) =>
+    setProducts((cur) => cur.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
+  if (products === null) {
+    return <AdminPage title="商品管理" lead="読み込み中…" />;
+  }
+
+  const editing = editingId ? products.find((p) => p.id === editingId) : null;
 
   return (
     <AdminPage title="商品管理"
-      lead="Shopify連携データを編集（プロトタイプではローカルにモック）。"
-      action={<button className="adm-btn adm-btn-primary" onClick={() => open(null)}>＋ 商品を追加</button>}>
+      lead="編集して「保存」で公開反映。Shopify連携は今後の本番化フェーズで段階的に差し替えます。"
+      action={
+        <div className="adm-page-action-row">
+          {status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}
+          {isDirty && <button className="adm-btn" onClick={discard} disabled={saving}>破棄</button>}
+          <button className="adm-btn adm-btn-primary" onClick={save} disabled={!isDirty || saving}>
+            {saving ? "保存中…" : isDirty ? `保存 (${changeCount}件)` : "保存済み"}
+          </button>
+          <button className="adm-btn" onClick={startNew} disabled={saving}>＋ 商品を追加</button>
+        </div>
+      }>
       <div className="adm-grid two">
         <section className="adm-card">
-          <h3>商品一覧</h3>
+          <h3>商品一覧 ({products.length})</h3>
           <ul className="adm-list">
-            {store.products.map((p) => (
-              <li key={p.id} className={editing === p.id ? "is-active" : ""}>
+            {products.map((p) => (
+              <li key={p.id} className={editingId === p.id ? "is-active" : ""}>
                 <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />
                 <div className="info">
-                  <div className="t-mincho">{p.title}</div>
+                  <div className="t-mincho">{p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}</div>
                   <div className="meta">{p.category}　{fmt(p.priceJpy)}{p.unit}</div>
                 </div>
                 <div className="adm-list-actions">
-                  <button className="adm-btn-link" onClick={() => open(p)}>編集</button>
-                  <button className="adm-btn-link adm-btn-danger" onClick={() => remove(p.id)}>削除</button>
+                  <button className="adm-btn-link" onClick={() => setEditingId(p.id)}>編集</button>
+                  <button className="adm-btn-link adm-btn-danger" onClick={() => removeProduct(p.id)}>削除</button>
                 </div>
               </li>
             ))}
           </ul>
         </section>
         <section className="adm-card">
-          <h3>{editing === "new" ? "新規商品を追加" : editing ? "商品を編集" : "商品を選択"}</h3>
+          <h3>{editing ? "商品を編集" : "商品を選択"}</h3>
           {!editing && <div className="adm-empty">左の一覧から商品を選択するか、「＋ 商品を追加」してください。</div>}
           {editing && (
             <div className="adm-form">
-              <label className="adm-field"><span>商品名</span><input className="adm-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
+              <label className="adm-field"><span>商品名</span>
+                <input className="adm-input" value={editing.title}
+                  onChange={(e) => updateProduct(editing.id, { title: e.target.value })} />
+              </label>
+              <label className="adm-field"><span>URLスラグ (handle)</span>
+                <input className="adm-input" value={editing.handle}
+                  onChange={(e) => updateProduct(editing.id, { handle: e.target.value.replace(/\s+/g, "-") })} />
+              </label>
               <div className="adm-row">
-                <label className="adm-field"><span>カテゴリ</span><input className="adm-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></label>
+                <label className="adm-field"><span>カテゴリ</span>
+                  <input className="adm-input" value={editing.category}
+                    onChange={(e) => updateProduct(editing.id, { category: e.target.value })} />
+                </label>
                 <label className="adm-field"><span>画像トーン</span>
-                  <select className="adm-input" value={form.imgTone || ""} onChange={(e) => setForm({ ...form, imgTone: e.target.value })}>
+                  <select className="adm-input" value={editing.imgTone || ""}
+                    onChange={(e) => updateProduct(editing.id, { imgTone: e.target.value })}>
                     <option value="">標準</option>
                     <option value="green">グリーン</option>
                     <option value="orange">オレンジ</option>
@@ -532,14 +783,30 @@ function ProductManager() {
               </div>
               <div className="adm-row">
                 <label className="adm-field"><span>価格</span>
-                  <div className="adm-price-input"><span>¥</span><input className="adm-input" value={form.priceJpy} onChange={(e) => setForm({ ...form, priceJpy: e.target.value })} /></div>
+                  <div className="adm-price-input"><span>¥</span>
+                    <input className="adm-input" value={editing.priceJpy}
+                      onChange={(e) => updateProduct(editing.id, { priceJpy: yenToInt(e.target.value) })} />
+                  </div>
                 </label>
-                <label className="adm-field"><span>単位</span><input className="adm-input" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="/ セット" /></label>
+                <label className="adm-field"><span>単位</span>
+                  <input className="adm-input" value={editing.unit}
+                    onChange={(e) => updateProduct(editing.id, { unit: e.target.value })} placeholder="/ セット" />
+                </label>
               </div>
-              <label className="adm-field"><span>説明</span><textarea className="adm-input" rows={3} value={form.desc} onChange={(e) => setForm({ ...form, desc: e.target.value })} /></label>
+              <label className="adm-field"><span>説明</span>
+                <textarea className="adm-input" rows={3} value={editing.desc}
+                  onChange={(e) => updateProduct(editing.id, { desc: e.target.value })} />
+              </label>
+              <label className="adm-field" style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <button type="button"
+                  className={`adm-toggle ${editing.visible ? "is-on" : ""}`}
+                  onClick={() => updateProduct(editing.id, { visible: !editing.visible })}>
+                  <span /> {editing.visible ? "表示中" : "非表示"}
+                </button>
+                <small style={{ color: "var(--c-text-sub)" }}>非表示にすると公開 /products から外れます</small>
+              </label>
               <div className="adm-actions">
-                <button className="adm-btn-link" onClick={() => setEditing(null)}>キャンセル</button>
-                <button className="adm-btn adm-btn-primary" onClick={save}>保存</button>
+                <button className="adm-btn-link" onClick={() => setEditingId(null)}>閉じる</button>
               </div>
             </div>
           )}

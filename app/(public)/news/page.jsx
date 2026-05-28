@@ -1,4 +1,7 @@
 import { NewsPage } from "../../components/PublicSite";
+import { getPosts } from "../../lib/posts-store";
+
+export const revalidate = 30;
 
 export const metadata = {
   title: "お知らせ｜里の味みかわ",
@@ -11,6 +14,7 @@ export const metadata = {
   },
 };
 
-export default function Page() {
-  return <NewsPage />;
+export default async function Page() {
+  const posts = await getPosts();
+  return <NewsPage posts={posts} />;
 }
