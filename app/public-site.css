@@ -678,3 +678,19 @@
   transition: color 0.15s;
 }
 .pub-footer .col ul a:hover { color: var(--c-orange-400); }
+
+/* External-link marker (↗). Keep subtle so internal links still feel primary. */
+.pub-ext {
+  display: inline-block;
+  font-size: 0.85em;
+  opacity: 0.6;
+  margin-left: 2px;
+  transform: translateY(-1px);
+}
+
+/* AgriBlock now hosts two CTAs side-by-side (internal + external). */
+.pub-agri-ctas {
+  display: flex; flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 6px;
+}

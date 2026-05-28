@@ -16,6 +16,21 @@ import { usePathname } from "next/navigation";
 import MikawaAPI from "../lib/api";
 import { ShopMiniMap, directionsUrl } from "./ShopMiniMap";
 
+// ── External links ──────────────────────────────────────────
+// One source of truth for the brand's off-site destinations. Reused by
+// the footer, the agri block, and the product-detail purchase CTA so
+// changing a URL only needs editing this one spot.
+const EXT = {
+  store: "https://www.satonoaji-mikawa.com",
+  bento: "https://order.satonoaji-mikawa.net/free/home",
+  agri:  "https://www.iwakuniagripartners.com",
+};
+const ExtLink = ({ href, className, children }) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+    {children} <span aria-hidden className="pub-ext">↗</span>
+  </a>
+);
+
 // ── Hook: live store ────────────────────────────────────────
 export function useStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
@@ -251,7 +266,10 @@ const AgriBlock = () => (
         <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Iwakuni Agri Partners</div>
         <h3 className="t-mincho">農家と共に、ものづくり。</h3>
         <p>協同組合「いわくにアグリパートナーズ」と連携し、規格外野菜を活かす商品開発・販路拡大に取り組んでいます。畑で働く人たちの声を、食卓まで届けることが、私たちの仕事です。</p>
-        <Link className="pub-link inv" href="/agri">取り組みを詳しく見る {Ico.arrow}</Link>
+        <div className="pub-agri-ctas">
+          <Link className="pub-link inv" href="/agri">取り組みを詳しく見る {Ico.arrow}</Link>
+          <ExtLink href={EXT.agri} className="pub-link inv">アグリパートナーズ公式サイト</ExtLink>
+        </div>
       </div>
       <div className="pub-agri-photo" aria-hidden>
         <span>〔 農家・畑の風景写真 〕</span>
@@ -312,10 +330,10 @@ const Footer = ({ shops }) => (
       <div className="col">
         <h5 className="t-en">Services</h5>
         <ul>
-          <li>オンラインショップ</li>
-          <li>お弁当のご予約</li>
+          <li><ExtLink href={EXT.store}>オンラインストア</ExtLink></li>
+          <li><ExtLink href={EXT.bento}>お弁当の予約</ExtLink></li>
           <li><Link href="/agri">農家との取り組み</Link></li>
-          <li>アグリパートナーズ</li>
+          <li><ExtLink href={EXT.agri}>アグリパートナーズ</ExtLink></li>
           <li>お問い合わせ</li>
         </ul>
       </div>
@@ -465,8 +483,17 @@ export function ProductDetailPage({ handle }) {
           <div className="pub-detail-pricerow">
             <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
             <div className="pub-detail-ctas">
-              <a className="pub-btn pub-btn-primary">カートに入れる {Ico.arrow}</a>
-              <a className="pub-btn pub-btn-ghost">店舗で予約</a>
+              {product.category === "弁当" ? (
+                <>
+                  <ExtLink href={EXT.bento} className="pub-btn pub-btn-primary">お弁当を予約する</ExtLink>
+                  <ExtLink href={EXT.store} className="pub-btn pub-btn-ghost">オンラインストアへ</ExtLink>
+                </>
+              ) : (
+                <>
+                  <ExtLink href={EXT.store} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
+                  <Link className="pub-btn pub-btn-ghost" href="/shops">店舗で予約</Link>
+                </>
+              )}
             </div>
           </div>
           <dl className="pub-detail-specs">
