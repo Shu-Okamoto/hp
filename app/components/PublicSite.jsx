@@ -169,7 +169,7 @@ const Hero = () => (
     <div className="pub-hero-inner">
       <div className="pub-hero-text">
         <div className="t-label" style={{ color: "var(--c-green-600)" }}>From Farm to Table</div>
-        <h1 className="t-mincho">農家と共に、<br/>畑から<span className="accent">食卓</span>へ。</h1>
+        <h1 className="t-mincho">農家と共に、<br/>食卓を<span className="accent">彩る</span>。</h1>
         <p>昔ながらの八百屋が届ける、新しい食のかたち。<br/>岩国の畑から、毎日の食卓へ。</p>
         <div className="pub-hero-ctas">
           <Link className="pub-btn pub-btn-primary" href="/products">商品を見る {Ico.arrow}</Link>
@@ -320,7 +320,7 @@ const Footer = ({ shops }) => (
     <div className="pub-footer-inner">
       <div className="col col-brand">
         <Logo size="lg" inverse />
-        <div className="tagline t-mincho">農家と共に、<br/>畑から食卓へ。</div>
+        <div className="tagline t-mincho">農家と共に、<br/>食卓を彩る。</div>
       </div>
       <div className="col">
         <h5 className="t-en">Sitemap</h5>

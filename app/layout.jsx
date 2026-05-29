@@ -6,7 +6,7 @@ import { getSiteUrl } from "./lib/site-url";
 export const metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "里の味みかわ — 農家と共に、畑から食卓へ",
+    default: "里の味みかわ — 農家と共に、食卓を彩る",
     template: "%s",
   },
   description: "岩国の畑から、毎日の食卓へ。今日の販売価格・新鮮な野菜・お弁当・加工品を、農家直送でお届けします。",
