@@ -11,6 +11,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import MikawaAPI from "../lib/api";
 import * as Auth from "../lib/auth";
+import { formatPriceMessage, todayHeadline } from "../lib/format-price-message";
 
 function useAdminStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
@@ -378,9 +379,10 @@ function PriceManager() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
-  // Persist the working copy.
+  // Persist the working copy. Returns true on success so the broadcast
+  // flow can chain a fanout call.
   const save = async () => {
-    if (!isDirty || saving) return;
+    if (!isDirty || saving) return false;
     setSaving(true);
     setStatus({ kind: "info", msg: "保存中…" });
     try {
@@ -396,8 +398,53 @@ function PriceManager() {
       setServerPrices(prices); // baseline = working copy
       setStatus({ kind: "ok", msg: `${changeCount}件の変更を保存しました` });
       setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2500);
+      return true;
     } catch (e) {
       setStatus({ kind: "err", msg: `保存失敗: ${e.message}` });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save (if dirty) + broadcast today's price board to LINE.
+  // Also creates an entry in hp.posts so it shows up in /news and the
+  // News Manager history. IG is included in channels for record-only.
+  const saveAndBroadcast = async () => {
+    if (saving) return;
+    if (!confirm("本日の価格表を LINE 友だち全員に配信します。よろしいですか？")) return;
+
+    // Step 1: save current edits (skip if clean)
+    if (isDirty) {
+      const ok = await save();
+      if (!ok) return; // 保存に失敗したら配信しない
+    }
+
+    // Step 2: broadcast
+    setSaving(true);
+    setStatus({ kind: "info", msg: "LINE 配信中…" });
+    try {
+      const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const fd = new FormData();
+      fd.append("title", todayHeadline());
+      fd.append("body", formatPriceMessage(prices, { siteUrl }));
+      fd.append("emoji", "🌟");
+      fd.append("source", "line");
+      fd.append("channels", "web,line,ig");
+      const r = await fetch("/api/posts", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      const f = j.fanout || {};
+      const parts = [];
+      parts.push(`サイト ${f.web?.ok ? "✓" : "—"}`);
+      parts.push(`LINE ${f.line?.ok ? "✓" : "✗"}${f.line?.ok ? "" : `(${f.line?.reason || f.line?.body || ""})`}`);
+      parts.push(`IG ${f.ig?.ok ? "✓" : "—"}`);
+      setStatus({
+        kind: f.line?.ok ? "ok" : "err",
+        msg: parts.join("　"),
+      });
+    } catch (e) {
+      setStatus({ kind: "err", msg: `配信失敗: ${e.message}` });
     } finally {
       setSaving(false);
     }
@@ -444,16 +491,22 @@ function PriceManager() {
 
   return (
     <AdminPage title="価格管理"
-      lead="編集してから「保存」で公開反映します。保存するまでは公開側には反映されません。"
+      lead="編集してから「保存」で公開反映。「保存して LINE 配信」で本日の価格表を LINE 友だち全員に配信＋お知らせ履歴に記録します。"
       action={
         <div className="adm-page-action-row">
           {status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}
           {isDirty && (
             <button className="adm-btn" onClick={discard} disabled={saving}>破棄</button>
           )}
-          <button className="adm-btn adm-btn-primary" onClick={save}
-            disabled={!isDirty || saving}>
+          <button className="adm-btn" onClick={save}
+            disabled={!isDirty || saving}
+            title="価格をサーバに保存（LINE には送らない）">
             {saving ? "保存中…" : isDirty ? `保存 (${changeCount}件)` : "保存済み"}
+          </button>
+          <button className="adm-btn adm-btn-primary" onClick={saveAndBroadcast}
+            disabled={saving}
+            title="価格を保存して LINE 友だち全員に配信">
+            {saving ? "配信中…" : isDirty ? `保存して LINE 配信 (${changeCount}件)` : "今の価格を LINE 配信"}
           </button>
           <button className="adm-btn" onClick={() => setAdding(true)} disabled={saving}>＋ 品目を追加</button>
         </div>
