@@ -40,7 +40,7 @@ export function seed() {
     shops: [
       { id: "s-honbu",  name: "みかわ本社惣菜本部",     addr: "山口県岩国市尾津町5-11-1",     hours: "8:00 - 17:00", tel: "0827-32-1346", lat: 34.12874584170318, lng: 132.21814046696338 },
       { id: "s-nishi",  name: "里の味みかわ西岩国店",  addr: "山口県岩国市岩国2丁目16-2",    hours: "9:00 - 17:00", tel: "0827-43-4773", lat: 34.16570066283565, lng: 132.18323661413040 },
-      { id: "s-minami", name: "里の味南岩国店",        addr: "山口県岩国市南岩国1丁目21-33",  hours: "9:00 - 17:00", tel: "0827-32-6510", lat: 34.13566547205680, lng: 132.20265788098350 },
+      { id: "s-minami", name: "里の味みかわ南岩国店",  addr: "山口県岩国市南岩国1丁目21-33",  hours: "9:00 - 17:00", tel: "0827-32-6510", lat: 34.13566547205680, lng: 132.20265788098350 },
     ],
     connections: {
       shopify:   { connected: true,  shop: "mikawa2020.myshopify.com", lastSync: today(), syncIntervalMin: 30 },
