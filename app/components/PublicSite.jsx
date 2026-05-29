@@ -289,7 +289,7 @@ const ShopMap = ({ shops }) => (
       <div>
         <div className="t-label">Our Shops</div>
         <h3 className="t-mincho">店舗一覧</h3>
-        <p className="pub-lead">山口県岩国市内に3店舗。直接お越しください。</p>
+        <p className="pub-lead">山口県岩国市で2店舗の八百屋を運営しております。</p>
       </div>
     </header>
     <MultiShopMap shops={shops} />
@@ -727,7 +727,7 @@ export function ShopsPage() {
       <header className="pub-page-head">
         <div className="t-label">Shops</div>
         <h1 className="t-mincho">店舗一覧</h1>
-        <p>山口県岩国市内に3店舗。営業時間・アクセス情報をご案内します。</p>
+        <p>山口県岩国市で2店舗の八百屋を運営しております。営業時間・アクセス情報をご案内します。</p>
       </header>
       <ShopMap shops={store.shops} />
     </main>

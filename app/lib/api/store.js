@@ -15,7 +15,7 @@ import { seed } from "../seed";
 // Storage version. Bump this when seed shape changes in a way that
 // breaks older cached data (e.g. shop.x/y → shop.lat/lng), to force
 // every browser to re-seed on next visit.
-const STORAGE_KEY = "mikawa:store:v2";
+const STORAGE_KEY = "mikawa:store:v3";
 const CHANNEL = "mikawa:store-changed";
 
 const isClient = () => typeof window !== "undefined";
