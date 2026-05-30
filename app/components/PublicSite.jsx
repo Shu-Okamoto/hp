@@ -271,7 +271,7 @@ const AgriBlock = () => (
       <div className="pub-agri-text">
         <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Iwakuni Agri Partners</div>
         <h3 className="t-mincho">農家と共に、ものづくり。</h3>
-        <p>協同組合「いわくにアグリパートナーズ」と連携し、規格外野菜を活かす商品開発・販路拡大に取り組んでいます。畑で働く人たちの声を、食卓まで届けることが、私たちの仕事です。</p>
+        <p>協同組合「いわくにアグリパートナーズ」を立ち上げて、地元農家との連携プラットフォームを作りました。食卓から畑が見える商品の開発をコンセプトにしています。</p>
         <div className="pub-agri-ctas">
           <Link className="pub-link inv" href="/agri">取り組みを詳しく見る {Ico.arrow}</Link>
           <ExtLink href={EXT.agri} className="pub-link inv">アグリパートナーズ公式サイト</ExtLink>
