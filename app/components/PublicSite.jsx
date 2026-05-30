@@ -54,14 +54,20 @@ const Ico = {
 };
 
 // ── Logo ────────────────────────────────────────────────────
-// Uses the brand image (transparent PNG); no background wrapper so the
-// host's surface color shows through. `size` controls the rendered
-// height via CSS; `inverse` is kept for API compat but currently has no
-// visual effect — supply a separate logo-inverse.png if a light-on-dark
-// variant becomes necessary.
-const Logo = ({ size = "md" }) => (
-  <div className={`pub-logo pub-logo-${size}`}>
-    <img src="/logo.png" alt="里の味みかわ" />
+// `inverse` switches to /logo-inverse.png — used on dark surfaces
+// (Footer). If that file isn't deployed yet, onError falls back to
+// the standard logo so the page never shows a broken image.
+const Logo = ({ size = "md", inverse = false }) => (
+  <div className={`pub-logo pub-logo-${size} ${inverse ? "inv" : ""}`}>
+    <img
+      src={inverse ? "/logo-inverse.png" : "/logo.png"}
+      alt="里の味みかわ"
+      onError={(e) => {
+        if (inverse && e.currentTarget.src.endsWith("/logo-inverse.png")) {
+          e.currentTarget.src = "/logo.png";
+        }
+      }}
+    />
   </div>
 );
 
