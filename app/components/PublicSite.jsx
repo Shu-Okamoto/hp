@@ -170,7 +170,9 @@ const Hero = () => (
       <div className="pub-hero-text">
         <div className="t-label" style={{ color: "var(--c-green-600)" }}>From Farm to Table</div>
         <h1 className="t-mincho">農家と共に、<br/>食卓を<span className="accent">彩る</span>。</h1>
-        <p>昔ながらの八百屋が届ける、新しい食のかたち。<br/>岩国の畑から、毎日の食卓へ。</p>
+        <p className="pub-hero-quote">「自然を尊ぶ」という日本人の気質に基づいた「食」に関する習わし<br/>「和食　日本人の伝統的な食文化」</p>
+        <p>昔から食べてきた親しみのある和食や発酵文化は、世界からも健康食として注目されています。</p>
+        <p>里の味みかわはここ山口県岩国から、昔ながらの八百屋ならではの食材の品質で「里の味」をお届けします。</p>
         <div className="pub-hero-ctas">
           <Link className="pub-btn pub-btn-primary" href="/products">商品を見る {Ico.arrow}</Link>
           <Link className="pub-btn pub-btn-ghost" href="/agri">ブランドの想い</Link>

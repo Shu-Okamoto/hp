@@ -150,7 +150,19 @@
   margin: 12px 0 14px; letter-spacing: 0.02em;
 }
 .pub-hero-text h1 .accent { color: var(--c-accent); }
-.pub-hero-text p { font-size: var(--fs-md); line-height: 1.85; color: var(--c-text); margin: 0 0 18px; }
+.pub-hero-text p { font-size: var(--fs-md); line-height: 1.95; color: var(--c-text); margin: 0 0 14px; }
+.pub-hero-text p:last-of-type { margin-bottom: 22px; }
+/* Cultural intro quote — sits between h1 and body, slightly smaller,
+   subdued color, mincho face to evoke 和食 framing. */
+.pub-hero-quote {
+  font-family: var(--f-mincho);
+  font-size: var(--fs-sm) !important;
+  color: var(--c-text-sub) !important;
+  line-height: 1.9 !important;
+  padding-left: 14px;
+  border-left: 2px solid var(--c-accent);
+  margin: 0 0 18px !important;
+}
 .pub-hero-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
 .pub-btn {
   display: inline-flex; align-items: center; gap: 6px;
