@@ -28,12 +28,16 @@
 .pub-logo { display: inline-flex; align-items: center; }
 .pub-logo img {
   display: block;
-  height: 36px;
+  height: 52px;
   width: auto;
-  max-width: 220px;
+  max-width: 260px;
   object-fit: contain;
 }
-.pub-logo-lg img { height: 64px; max-width: 280px; }
+@media (max-width: 720px) {
+  .pub-logo img { height: 44px; max-width: 200px; }
+  .pub-appbar-inner { height: 64px; }
+}
+.pub-logo-lg img { height: 72px; max-width: 320px; }
 
 /* App bar (sticky) */
 .pub-appbar {
@@ -45,7 +49,7 @@
 .pub-appbar-inner {
   max-width: var(--container);
   margin: 0 auto;
-  height: 64px;
+  height: 78px;
   padding: 0 22px;
   display: flex; align-items: center; gap: 18px;
 }
