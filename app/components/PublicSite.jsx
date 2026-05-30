@@ -208,8 +208,8 @@ const ProductGrid = ({ products, heading = true }) => (
       <header className="pub-section-head">
         <div>
           <div className="t-label">Our Products</div>
-          <h3 className="t-mincho">畑とつながる、5つのかたち</h3>
-          <p className="pub-lead">農家と協同で生み出した、地域の食をつなぐ仕事たち。</p>
+          <h3 className="t-mincho">産地直送、里の味。</h3>
+          <p className="pub-lead">農家と共に、地域の食を守り・つなぐ。</p>
         </div>
       </header>
     )}
