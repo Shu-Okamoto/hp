@@ -646,9 +646,9 @@
   gap: 14px;
 }
 .pub-footer .col-brand .pub-logo-lg img {
-  height: 100px;
+  height: 150px;
   width: auto;
-  max-width: 100px;
+  max-width: 150px;
 }
 .pub-footer .col-brand .tagline {
   margin-top: 0;
