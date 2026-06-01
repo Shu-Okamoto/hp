@@ -630,11 +630,25 @@
 }
 @media (min-width: 720px) { .pub-footer-inner { grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; } }
 @media (min-width: 1080px) { .pub-footer-inner { grid-template-columns: 1.4fr 1fr 1fr 1.2fr 0.6fr; gap: 36px; } }
+/* Footer brand block: square logo to the left, tagline subtitle right. */
+.pub-footer .col-brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.pub-footer .col-brand .pub-logo-lg img {
+  /* Square inverse logo — let height drive the box, drop the
+     horizontal-logo max-width constraint so the full mark shows. */
+  height: 96px;
+  width: auto;
+  max-width: 96px;
+}
 .pub-footer .col-brand .tagline {
-  margin-top: 18px;
+  margin-top: 0;
   font-size: var(--fs-lg);
   color: var(--c-bg);
   line-height: 1.7;
+  flex: 1;
 }
 .pub-footer h5 {
   font-family: var(--f-en); font-size: var(--fs-xs);
