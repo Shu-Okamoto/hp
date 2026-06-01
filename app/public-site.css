@@ -632,17 +632,18 @@
 @media (min-width: 1080px) { .pub-footer-inner { grid-template-columns: 1.4fr 1fr 1fr 1.2fr 0.6fr; gap: 36px; } }
 /* Footer brand block — responsive layout per breakpoint.
    Mobile  (< 720px, 1-col footer): horizontal, 100px logo, tagline keeps
-     the natural <br/> for a 2-line break.
-   Tablet  (720–1079px, 3-col footer): vertical, 150px logo, tagline
-     collapses to a single line (br hidden).
-   Desktop (≥ 1080px, 5-col footer): horizontal, 200px logo, single-line
-     tagline. Brand col grid ratio bumped so the wider logo fits cleanly. */
+     the natural <br/> for a 2-line break, padding 22px around the block.
+   Tablet  (720–1079px, 3-col footer): vertical & center-aligned, 150px
+     logo, single-line tagline (br hidden).
+   Desktop (≥ 1080px, 5-col footer): vertical & center-aligned, 200px
+     logo, single-line tagline (br hidden). */
 
 /* Mobile (default) */
 .pub-footer .col-brand {
   display: flex;
   align-items: center;
   gap: 14px;
+  padding: 22px 22px;
 }
 .pub-footer .col-brand .pub-logo-lg img {
   height: 100px;
@@ -659,7 +660,14 @@
 
 /* Tablet (3-col footer) */
 @media (min-width: 720px) and (max-width: 1079px) {
-  .pub-footer .col-brand { display: block; }
+  .pub-footer .col-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+    padding: 0;
+  }
   .pub-footer .col-brand .pub-logo-lg img {
     height: 150px;
     max-width: 150px;
@@ -671,22 +679,23 @@
   .pub-footer .col-brand .tagline br { display: none; }
 }
 
-/* Desktop (5-col footer) */
+/* Desktop (5-col footer) — same vertical center layout as tablet, larger logo */
 @media (min-width: 1080px) {
-  .pub-footer-inner { grid-template-columns: 2.2fr 1fr 1fr 1.2fr 0.6fr; }
   .pub-footer .col-brand {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 28px;
+    text-align: center;
+    gap: 0;
+    padding: 0;
   }
   .pub-footer .col-brand .pub-logo-lg img {
     height: 200px;
     max-width: 200px;
   }
   .pub-footer .col-brand .tagline {
-    margin-top: 0;
+    margin-top: 18px;
     font-size: var(--fs-lg);
-    flex: 1;
   }
   .pub-footer .col-brand .tagline br { display: none; }
 }
