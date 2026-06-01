@@ -622,7 +622,8 @@
 .pub-detail-channels .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* Footer */
-.pub-footer { background: var(--c-primary); color: rgba(250,245,236,0.85); padding: 56px 22px 22px; }
+.pub-footer { background: var(--c-primary); color: rgba(250,245,236,0.85); padding: 22px; }
+@media (min-width: 720px) { .pub-footer { padding: 56px 22px 22px; } }
 .pub-footer-inner {
   max-width: var(--container); margin: 0 auto;
   display: grid; gap: 32px;
@@ -643,7 +644,6 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 22px 22px;
 }
 .pub-footer .col-brand .pub-logo-lg img {
   height: 100px;
