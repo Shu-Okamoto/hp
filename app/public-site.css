@@ -630,25 +630,35 @@
 }
 @media (min-width: 720px) { .pub-footer-inner { grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; } }
 @media (min-width: 1080px) { .pub-footer-inner { grid-template-columns: 1.4fr 1fr 1fr 1.2fr 0.6fr; gap: 36px; } }
-/* Footer brand block: square logo to the left, tagline subtitle right. */
-.pub-footer .col-brand {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
+/* Footer brand block.
+   Default (mobile + tablet): the prior vertical stack — logo on top,
+   tagline beneath. The logo can run up to 200px tall because each
+   stacked column has full-width breathing room.
+   Desktop ≥ 1080px (5-col footer): switch to horizontal layout, logo
+   on the left, tagline subtitle on the right. Brand col gets a wider
+   grid ratio so the 200px square + tagline both fit comfortably. */
 .pub-footer .col-brand .pub-logo-lg img {
-  /* Square inverse logo — let height drive the box, drop the
-     horizontal-logo max-width constraint so the full mark shows. */
-  height: 96px;
+  height: 200px;
   width: auto;
-  max-width: 96px;
+  max-width: 200px;
 }
 .pub-footer .col-brand .tagline {
-  margin-top: 0;
+  margin-top: 18px;
   font-size: var(--fs-lg);
   color: var(--c-bg);
   line-height: 1.7;
-  flex: 1;
+}
+@media (min-width: 1080px) {
+  .pub-footer-inner { grid-template-columns: 2.2fr 1fr 1fr 1.2fr 0.6fr; }
+  .pub-footer .col-brand {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .pub-footer .col-brand .tagline {
+    margin-top: 0;
+    flex: 1;
+  }
 }
 .pub-footer h5 {
   font-family: var(--f-en); font-size: var(--fs-xs);
