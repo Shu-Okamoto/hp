@@ -345,6 +345,7 @@ const Footer = ({ shops }) => (
       <div className="col">
         <h5 className="t-en">Services</h5>
         <ul>
+          <li><Link href="/signature">看板商品 大吟醸の奈良漬</Link></li>
           <li><ExtLink href={EXT.store}>オンラインストア</ExtLink></li>
           <li><Link href="/bento">お弁当のご予約</Link></li>
           <li><Link href="/agri">農家との取り組み</Link></li>
@@ -443,11 +444,15 @@ export function HomePage({
   const prices = initialPrices ?? store.dailyPrices;
   const posts = initialPosts ?? store.posts;
   const products = initialProducts ?? store.products;
+  const signatureProduct = products.find((p) => p.handle === "daiginjo-narazuke");
+  // Don't double-show the signature in the regular grid below.
+  const gridProducts = products.filter((p) => p.handle !== "daiginjo-narazuke");
   return (
     <>
       <Stories prices={prices} />
       <Hero />
-      <ProductGrid products={products} />
+      <SignatureSection product={signatureProduct} />
+      <ProductGrid products={gridProducts} />
       <NewsListSection posts={posts} compact />
       <AgriBlock />
       <ShopMap shops={store.shops} />
@@ -753,6 +758,146 @@ export function AgriPage() {
         <p>協同組合いわくにアグリパートナーズと共に、地域の畑をつなぐ。</p>
       </header>
       <AgriBlock />
+    </main>
+  );
+}
+
+// Signature highlight strip — sits on the home page between Hero and
+// ProductGrid. Pulls the signature item by handle so the rest of the
+// products list is free to reorder.
+export function SignatureSection({ product }) {
+  if (!product) return null;
+  return (
+    <section className="pub-signature">
+      <div className="pub-signature-inner">
+        <div className="pub-signature-art" aria-hidden>
+          {product.imageUrl
+            ? <img src={product.imageUrl} alt="" />
+            : <div className="placeholder"><span>大吟醸</span><span>奈良漬</span></div>}
+        </div>
+        <div className="pub-signature-text">
+          <div className="t-label">Our Signature</div>
+          <h3 className="t-mincho">{product.title}</h3>
+          <p>{product.desc}</p>
+          <div className="pub-signature-pricerow">
+            <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
+            <Link className="pub-btn pub-btn-primary" href="/signature">
+              看板商品を詳しく見る {Ico.arrow}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function SignaturePage({ product: serverProduct } = {}) {
+  // Server page passes the looked-up product; fall back to the seed
+  // for impl-host / preview contexts.
+  const store = useStore();
+  const product = serverProduct ?? store.products.find((p) => p.handle === "daiginjo-narazuke");
+  return (
+    <main className="pub-page pub-signature-page">
+      <header className="pub-page-head">
+        <div className="t-label">Our Signature</div>
+        <h1 className="t-mincho">大吟醸の奈良漬</h1>
+        <p>大吟醸の酒粕で何度も漬け重ねた、里の味みかわの看板商品。</p>
+      </header>
+
+      {/* Hero */}
+      <section className="pub-signature-hero">
+        <div className="pub-signature-hero-inner">
+          <div className="pub-signature-hero-art" aria-hidden>
+            {product?.imageUrl
+              ? <img src={product.imageUrl} alt={product?.title} />
+              : <div className="placeholder"><span>大吟醸</span><span>奈良漬</span></div>}
+          </div>
+          <div className="pub-signature-hero-text">
+            <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Signature</div>
+            <h2 className="t-mincho">里の味みかわが<br/>胸を張ってお届けする<br/>看板の一品。</h2>
+            <p>大吟醸の酒粕の華やかな香りと、何度も漬け重ねたコクの深さ。お茶請け・贈答・お酒の肴まで、長く愛されてきた里の味の代表作です。</p>
+            <div className="pub-signature-hero-ctas">
+              {product && (
+                <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
+              )}
+              <ExtLink href={EXT.store} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Story */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">The Story</div>
+            <h3 className="t-mincho">なぜ「大吟醸」なのか。</h3>
+          </div>
+        </header>
+        <div className="pub-signature-story">
+          <p>奈良漬は、瓜や胡瓜などの野菜を酒粕に長期間漬け込んだ発酵食品。日本古来の保存食でありながら、酒粕の質が味の8割を決める繊細な一品です。</p>
+          <p>里の味みかわでは、地元蔵元の<strong>大吟醸酒粕</strong>のみを使用。通常の酒粕に比べて雑味が少なく、華やかで芳醇な香りが野菜にまっすぐ移ります。一夜漬けでは決して出ない、奥深いコクと余韻を引き出すために、漬け床は<strong>四度繰り返し</strong>新しい酒粕に入れ替えながら、ゆっくりと熟成させていきます。</p>
+          <p>仕上がりまで半年以上。手間も酒粕も贅沢に使った、まさに「みかわの看板」と呼べる味わいです。</p>
+        </div>
+      </section>
+
+      {/* Process */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">How It's Made</div>
+            <h3 className="t-mincho">製法のこだわり</h3>
+          </div>
+        </header>
+        <div className="pub-signature-process">
+          <article>
+            <div className="emoji" aria-hidden>🍶</div>
+            <h4 className="t-mincho">大吟醸酒粕のみ使用</h4>
+            <p>地元蔵元から仕入れた大吟醸酒粕だけを贅沢に使用。雑味のない上質な香りを野菜にまっすぐ移します。</p>
+          </article>
+          <article>
+            <div className="emoji" aria-hidden>🥒</div>
+            <h4 className="t-mincho">地元契約野菜</h4>
+            <p>いわくにアグリパートナーズの契約農家から、漬物に最適な品種・大きさのものを厳選。鮮度の高い状態で漬け始めます。</p>
+          </article>
+          <article>
+            <div className="emoji" aria-hidden>⏳</div>
+            <h4 className="t-mincho">四度漬けの手間</h4>
+            <p>酒粕を新しいものに入れ替えながら4回漬け直し、半年以上かけて熟成。奥深いコクと余韻を引き出します。</p>
+          </article>
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">Recommended Use</div>
+            <h3 className="t-mincho">こんな場面に。</h3>
+          </div>
+        </header>
+        <ul className="pub-signature-uses">
+          <li><b>ご贈答に</b> — 化粧箱入りでお届け可能。御中元・御歳暮や大切な方へのお土産に。</li>
+          <li><b>お茶請けに</b> — 渋めの番茶と。日本人の伝統的な食卓のお供として。</li>
+          <li><b>お酒の肴に</b> — 日本酒・焼酎との相性は抜群。深い香りが余韻を引き立てます。</li>
+          <li><b>ちょっとした手土産に</b> — 個包装の少量パックもご用意しています。</li>
+        </ul>
+      </section>
+
+      {/* CTA */}
+      <section className="pub-section pub-signature-cta">
+        <div className="pub-signature-cta-inner">
+          <div>
+            <div className="t-label">Order</div>
+            <h3 className="t-mincho">¥3,800 / 1袋〜</h3>
+            <p>ギフトボックス・少量パックも各種ご用意しています。オンラインストアまたは店舗にてお求めください。</p>
+          </div>
+          <div className="pub-signature-cta-actions">
+            <ExtLink href={EXT.store} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
+            <Link href="/shops" className="pub-btn pub-btn-ghost">店舗で購入する</Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

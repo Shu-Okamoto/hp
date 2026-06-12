@@ -13,6 +13,7 @@ export function seed() {
       lastSync: { shopify: today(), instagram: today(), line: today() },
     },
     products: [
+      { id: "p-narazuke", handle: "daiginjo-narazuke", title: "大吟醸の奈良漬", priceJpy: 3800, unit: "/ 1袋", category: "看板",  imgTone: "",       desc: "大吟醸の酒粕で何度も漬け重ねた、里の味みかわの看板商品。香り高く深いコクが、贈答にも自信を持ってお勧めできる一品です。" },
       { id: "p-set",   handle: "mikawa-set",   title: "岩国野菜の旬セット",   priceJpy: 2480, unit: "/ セット",     category: "看板",  imgTone: "green",  desc: "錦川流域の畑から、旬の野菜10品をバランスよく詰め合わせ。" },
       { id: "p-bento", handle: "yakult-bento", title: "ヤクルト式 お弁当便", priceJpy: 650,  unit: "/ 1食〜",     category: "弁当",  imgTone: "orange", desc: "週替わりカタログから選べる、岩国エリア地域密着の弁当配達。" },
       { id: "p-jam",   handle: "farm-jam",     title: "農家のジャム",         priceJpy: 880,  unit: "〜",          category: "加工品", imgTone: "",       desc: "規格外野菜から生まれる、季節の保存食。" },
