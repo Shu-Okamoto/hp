@@ -801,7 +801,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
       <header className="pub-page-head">
         <div className="t-label">Our Signature</div>
         <h1 className="t-mincho">大吟醸の奈良漬</h1>
-        <p>大吟醸の酒粕で何度も漬け重ねた、里の味みかわの看板商品。</p>
+        <p>大吟醸の酒粕で漬け重ねた、里の味みかわの看板商品。</p>
       </header>
 
       {/* Hero */}
@@ -814,8 +814,8 @@ export function SignaturePage({ product: serverProduct } = {}) {
           </div>
           <div className="pub-signature-hero-text">
             <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Signature</div>
-            <h2 className="t-mincho">里の味みかわが<br/>胸を張ってお届けする<br/>看板の一品。</h2>
-            <p>大吟醸の酒粕の華やかな香りと、何度も漬け重ねたコクの深さ。お茶請け・贈答・お酒の肴まで、長く愛されてきた里の味の代表作です。</p>
+            <h2 className="t-mincho">里の味みかわがお届けする<br/>上質な一品。</h2>
+            <p>大吟醸の酒粕の華やかな香りと、漬け重ねたコクの深さ。ご飯のお供・贈答・お酒の肴まで、長く愛されてきた里の味の代表作です。</p>
             <div className="pub-signature-hero-ctas">
               {product && (
                 <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
@@ -836,8 +836,8 @@ export function SignaturePage({ product: serverProduct } = {}) {
         </header>
         <div className="pub-signature-story">
           <p>奈良漬は、瓜や胡瓜などの野菜を酒粕に長期間漬け込んだ発酵食品。日本古来の保存食でありながら、酒粕の質が味の8割を決める繊細な一品です。</p>
-          <p>里の味みかわでは、地元蔵元の<strong>大吟醸酒粕</strong>のみを使用。通常の酒粕に比べて雑味が少なく、華やかで芳醇な香りが野菜にまっすぐ移ります。一夜漬けでは決して出ない、奥深いコクと余韻を引き出すために、漬け床は<strong>四度繰り返し</strong>新しい酒粕に入れ替えながら、ゆっくりと熟成させていきます。</p>
-          <p>仕上がりまで半年以上。手間も酒粕も贅沢に使った、まさに「みかわの看板」と呼べる味わいです。</p>
+          <p>里の味みかわでは、地元蔵元の<strong>純米大吟醸酒粕</strong>のみを使用。通常の酒粕に比べて雑味が少なく、華やかで芳醇な香りが野菜にまっすぐ移ります。一夜漬けでは決して出ない、奥深いコクと余韻を引き出すために、漬け床は繰り返し新しい酒粕に入れ替えながら、ゆっくりと熟成させていきます。</p>
+          <p>仕上がりまで半年以上。手間も酒粕も贅沢に使った、まさに「みかわの看板商品」と呼べる味わいです。</p>
         </div>
       </section>
 
@@ -852,7 +852,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
         <div className="pub-signature-process">
           <article>
             <div className="emoji" aria-hidden>🍶</div>
-            <h4 className="t-mincho">大吟醸酒粕のみ使用</h4>
+            <h4 className="t-mincho">純米大吟醸酒粕のみ使用</h4>
             <p>地元蔵元から仕入れた大吟醸酒粕だけを贅沢に使用。雑味のない上質な香りを野菜にまっすぐ移します。</p>
           </article>
           <article>
@@ -862,8 +862,8 @@ export function SignaturePage({ product: serverProduct } = {}) {
           </article>
           <article>
             <div className="emoji" aria-hidden>⏳</div>
-            <h4 className="t-mincho">四度漬けの手間</h4>
-            <p>酒粕を新しいものに入れ替えながら4回漬け直し、半年以上かけて熟成。奥深いコクと余韻を引き出します。</p>
+            <h4 className="t-mincho">漬け替えの手間</h4>
+            <p>酒粕を新しいものに入れ替えながら漬け直し、半年以上かけて熟成。奥深いコクと余韻を引き出します。</p>
           </article>
         </div>
       </section>
