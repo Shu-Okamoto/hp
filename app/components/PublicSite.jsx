@@ -51,6 +51,7 @@ const Ico = {
   ig:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>,
   line:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 3c5 0 9 3.3 9 7.4 0 4-4 7.3-9 7.3-.7 0-1.4-.1-2-.2L6 20l1-3.3C5 15.3 3 13 3 10.4 3 6.3 7 3 12 3z" strokeLinejoin="round"/></svg>,
   mail:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>,
+  bento:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><line x1="12" y1="6" x2="12" y2="20"/><line x1="3" y1="13" x2="12" y2="13"/><circle cx="16.5" cy="10" r="0.9" fill="currentColor" stroke="none"/></svg>,
 };
 
 // ── Logo ────────────────────────────────────────────────────
@@ -93,10 +94,11 @@ export const Breadcrumb = ({ items }) => (
 // ── Nav config ──────────────────────────────────────────────
 const NAV_ITEMS = [
   { key: "home",     href: "/",         label: "ホーム",       ico: Ico.home },
-  { key: "products", href: "/products", label: "商品・メニュー", ico: Ico.bag, navLabel: "商品" },
-  { key: "price",    href: "/price",    label: "今日の価格",   ico: Ico.tag, navLabel: "価格" },
+  { key: "products", href: "/products", label: "商品・メニュー", ico: Ico.bag,   navLabel: "商品" },
+  { key: "bento",    href: "/bento",    label: "お弁当のご予約", ico: Ico.bento, navLabel: "お弁当" },
+  { key: "price",    href: "/price",    label: "今日の価格",   ico: Ico.tag,   navLabel: "価格" },
   { key: "news",     href: "/news",     label: "お知らせ",     ico: Ico.list },
-  { key: "shops",    href: "/shops",    label: "店舗一覧",     ico: Ico.pin, navLabel: "店舗" },
+  { key: "shops",    href: "/shops",    label: "店舗一覧",     ico: Ico.pin,   navLabel: "店舗" },
   { key: "agri",     href: "/agri",     label: "農家との取り組み" },
 ];
 
@@ -344,7 +346,7 @@ const Footer = ({ shops }) => (
         <h5 className="t-en">Services</h5>
         <ul>
           <li><ExtLink href={EXT.store}>オンラインストア</ExtLink></li>
-          <li><ExtLink href={EXT.bento}>お弁当の予約</ExtLink></li>
+          <li><Link href="/bento">お弁当のご予約</Link></li>
           <li><Link href="/agri">農家との取り組み</Link></li>
           <li><ExtLink href={EXT.agri}>アグリパートナーズ</ExtLink></li>
           <li>お問い合わせ</li>
@@ -751,6 +753,109 @@ export function AgriPage() {
         <p>協同組合いわくにアグリパートナーズと共に、地域の畑をつなぐ。</p>
       </header>
       <AgriBlock />
+    </main>
+  );
+}
+
+export function BentoPage() {
+  return (
+    <main className="pub-page pub-bento">
+      <header className="pub-page-head">
+        <div className="t-label">Bento Delivery</div>
+        <h1 className="t-mincho">お弁当のご予約</h1>
+        <p>ヤクルト式 お弁当便 — 岩国エリア地域密着、週替わりカタログから選べる弁当配達。</p>
+      </header>
+
+      {/* Hero CTA section */}
+      <section className="pub-bento-hero">
+        <div className="pub-bento-hero-inner">
+          <div className="pub-bento-hero-text">
+            <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Order Online</div>
+            <h2 className="t-mincho">毎日のお食事を、<br/>八百屋がお届けします。</h2>
+            <p>地元の旬の野菜を活かした、栄養バランスの整ったお弁当。週替わりカタログから選んで、ご自宅・職場へお届けします。<br/>ご家族・グループでのご利用も歓迎。</p>
+            <div className="pub-bento-hero-ctas">
+              <ExtLink href={EXT.bento} className="pub-btn pub-btn-primary">今すぐ予約サイトへ</ExtLink>
+              <a href="#how-to-order" className="pub-btn pub-btn-ghost">注文の流れを見る</a>
+            </div>
+          </div>
+          <div className="pub-bento-hero-art" aria-hidden>
+            <div className="art-emoji">🍱</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">Why お弁当便</div>
+            <h3 className="t-mincho">里の味みかわ の弁当便、3 つの特長</h3>
+          </div>
+        </header>
+        <div className="pub-bento-features">
+          <article className="pub-bento-feature">
+            <div className="emoji" aria-hidden>📅</div>
+            <h4 className="t-mincho">週替わりメニュー</h4>
+            <p>季節の食材を使った日替わり・週替わりの献立。専用カタログから事前に選べるので、飽きずに続けられます。</p>
+          </article>
+          <article className="pub-bento-feature">
+            <div className="emoji" aria-hidden>🚚</div>
+            <h4 className="t-mincho">岩国エリア配達</h4>
+            <p>岩国市内のご自宅・職場へ、決まった時間にお届け。配達範囲・時間帯はオンライン予約サイトでご確認いただけます。</p>
+          </article>
+          <article className="pub-bento-feature">
+            <div className="emoji" aria-hidden>🥬</div>
+            <h4 className="t-mincho">八百屋ならではの食材</h4>
+            <p>毎朝仕入れる新鮮な地元野菜を中心に、いわくにアグリパートナーズと連携した契約農家の食材を使用しています。</p>
+          </article>
+        </div>
+      </section>
+
+      {/* How to order */}
+      <section id="how-to-order" className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">How to Order</div>
+            <h3 className="t-mincho">ご注文の流れ</h3>
+            <p className="pub-lead">3 ステップでご予約完了。所要時間は約 3 分です。</p>
+          </div>
+        </header>
+        <ol className="pub-bento-steps">
+          <li>
+            <div className="num">1</div>
+            <div className="content">
+              <h4 className="t-mincho">予約サイトへアクセス</h4>
+              <p>下のボタンから「お弁当便」予約サイトへ移動します。</p>
+            </div>
+          </li>
+          <li>
+            <div className="num">2</div>
+            <div className="content">
+              <h4 className="t-mincho">メニュー・配達日を選ぶ</h4>
+              <p>週替わりカタログから召し上がりたいメニューを、お届け日時とともに選択します。</p>
+            </div>
+          </li>
+          <li>
+            <div className="num">3</div>
+            <div className="content">
+              <h4 className="t-mincho">お届け先・お支払いを入力</h4>
+              <p>お届け先住所とお支払い情報を入力すれば、ご予約完了。指定日時にお届けします。</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      {/* Price + CTA */}
+      <section className="pub-section pub-bento-cta">
+        <div className="pub-bento-cta-inner">
+          <div>
+            <div className="t-label">Pricing</div>
+            <h3 className="t-mincho">¥650 / 1食〜</h3>
+            <p>定期便・単発ご注文どちらにも対応しています。詳細価格は予約サイトでご確認ください。</p>
+          </div>
+          <ExtLink href={EXT.bento} className="pub-btn pub-btn-primary pub-btn-lg">予約サイトへ進む</ExtLink>
+        </div>
+      </section>
     </main>
   );
 }
