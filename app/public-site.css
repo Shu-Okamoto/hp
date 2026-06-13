@@ -547,6 +547,153 @@
 .pub-signature-cta-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
 @media (min-width: 720px) { .pub-signature-cta-actions { flex-direction: row; align-items: center; } }
 
+/* ── DX page ─────────────────────────────────────────────── */
+/* 落ち着いた深緑 + 淡いクリームのコンビで「テクノロジー × 八百屋」を表現 */
+.pub-dx-hero {
+  max-width: var(--container);
+  margin: 8px auto 0;
+  padding: 28px 22px;
+}
+.pub-dx-hero-inner {
+  display: grid; gap: 28px;
+  grid-template-columns: 1fr;
+  background: linear-gradient(135deg, var(--c-primary), #1f3f2c);
+  color: var(--c-bg);
+  border-radius: var(--r-lg);
+  padding: 32px 26px;
+}
+@media (min-width: 720px) {
+  .pub-dx-hero-inner { grid-template-columns: 1.2fr 1fr; align-items: center; padding: 44px; gap: 40px; }
+}
+.pub-dx-hero-text h2 {
+  font-family: var(--f-mincho);
+  font-size: clamp(22px, 3vw, 32px);
+  color: #fff; line-height: 1.55; margin: 8px 0 16px;
+}
+.pub-dx-hero-text p { color: rgba(250,245,236,0.86); line-height: 1.95; margin: 0 0 24px; font-size: var(--fs-md); }
+.pub-dx-hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.pub-dx-hero-stats .stat {
+  display: flex; flex-direction: column;
+  border-left: 2px solid var(--c-orange-400);
+  padding-left: 12px;
+}
+.pub-dx-hero-stats .stat b {
+  font-family: var(--f-en, var(--f-mincho));
+  font-size: clamp(24px, 3vw, 32px);
+  color: var(--c-orange-400); line-height: 1;
+}
+.pub-dx-hero-stats .stat span { font-size: 11px; color: rgba(250,245,236,0.7); margin-top: 4px; letter-spacing: 0.05em; }
+
+/* シンプルなハブ&スポーク図解 */
+.pub-dx-hero-art {
+  aspect-ratio: 1 / 1;
+  display: grid; place-items: center;
+}
+.pub-dx-diagram {
+  position: relative;
+  width: 100%; height: 100%;
+  max-width: 380px; max-height: 380px;
+}
+.pub-dx-diagram .node {
+  position: absolute;
+  width: 24%; min-width: 76px;
+  aspect-ratio: 1 / 1;
+  background: rgba(250,245,236,0.10);
+  border: 1px solid rgba(250,245,236,0.30);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--f-mincho); font-size: clamp(11px, 1.6vw, 14px);
+  color: #fff; text-align: center;
+  backdrop-filter: blur(4px);
+}
+.pub-dx-diagram .node-customer { top: 5%;  left: 8%; }
+.pub-dx-diagram .node-farmer   { top: 5%;  right: 8%; }
+.pub-dx-diagram .node-staff    { bottom: 5%; left: 8%; }
+.pub-dx-diagram .node-data     { bottom: 5%; right: 8%; }
+.pub-dx-diagram .hub {
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 38%; aspect-ratio: 1 / 1;
+  background: var(--c-orange-400);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  box-shadow: 0 0 0 8px rgba(200, 112, 58, 0.18);
+}
+.pub-dx-diagram .hub-label { font-family: var(--f-mincho); font-size: clamp(11px, 1.6vw, 14px); text-align: center; padding: 0 8px; line-height: 1.35; }
+.pub-dx-diagram-lines {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  stroke: rgba(250,245,236,0.25); stroke-width: 0.6; fill: none;
+  pointer-events: none;
+}
+
+.pub-dx-grid {
+  display: grid; gap: 18px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 720px)  { .pub-dx-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1080px) { .pub-dx-grid { grid-template-columns: repeat(3, 1fr); } }
+.pub-dx-card {
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  border-top: 3px solid var(--c-orange-400);
+}
+.pub-dx-card .ico { font-size: 28px; }
+.pub-dx-card h4 { font-family: var(--f-mincho); font-size: var(--fs-lg); color: var(--c-primary); margin: 0; }
+.pub-dx-card p { font-size: var(--fs-sm); line-height: 1.85; color: var(--c-text); margin: 0; flex: 1; }
+.pub-dx-card .meta {
+  font-family: var(--f-en, monospace);
+  font-size: 11px; letter-spacing: 0.05em;
+  color: var(--c-text-sub);
+  padding-top: 10px; margin-top: auto;
+  border-top: 1px dashed var(--c-border);
+}
+
+.pub-dx-roadmap {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 14px;
+}
+.pub-dx-roadmap li {
+  display: grid; grid-template-columns: 80px 1fr; gap: 18px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  align-items: start;
+}
+.pub-dx-roadmap .step {
+  font-family: var(--f-en, var(--f-mincho));
+  font-size: 12px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-bg);
+  background: var(--c-primary);
+  padding: 6px 10px;
+  border-radius: var(--r-sm, 6px);
+  text-align: center;
+  align-self: start;
+}
+.pub-dx-roadmap h4 { font-family: var(--f-mincho); font-size: var(--fs-lg); color: var(--c-primary); margin: 0 0 6px; }
+.pub-dx-roadmap p { font-size: var(--fs-sm); line-height: 1.8; color: var(--c-text); margin: 0; }
+
+.pub-dx-cta-inner {
+  display: grid; gap: 18px;
+  background: var(--c-primary);
+  color: var(--c-bg);
+  border-radius: var(--r-lg);
+  padding: 28px 24px;
+}
+@media (min-width: 720px) {
+  .pub-dx-cta-inner { grid-template-columns: 1fr auto; align-items: center; padding: 32px 36px; }
+}
+.pub-dx-cta-inner .t-label { color: var(--c-orange-400); }
+.pub-dx-cta-inner h3 { font-family: var(--f-mincho); font-size: clamp(22px, 2.8vw, 30px); color: #fff; margin: 6px 0 8px; }
+.pub-dx-cta-inner p { color: rgba(250,245,236,0.85); font-size: var(--fs-sm); margin: 0; line-height: 1.8; }
+.pub-dx-cta-actions { display: flex; gap: 10px; flex-direction: column; }
+@media (min-width: 720px) { .pub-dx-cta-actions { flex-direction: row; align-items: center; } }
+
 /* ── Bento page ──────────────────────────────────────────── */
 .pub-bento-hero {
   max-width: var(--container);

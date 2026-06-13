@@ -350,6 +350,7 @@ const Footer = ({ shops }) => (
           <li><Link href="/bento">お弁当のご予約</Link></li>
           <li><Link href="/agri">農家との取り組み</Link></li>
           <li><ExtLink href={EXT.agri}>アグリパートナーズ</ExtLink></li>
+          <li><Link href="/dx">里の味みかわ の DX</Link></li>
           <li>お問い合わせ</li>
         </ul>
       </div>
@@ -895,6 +896,156 @@ export function SignaturePage({ product: serverProduct } = {}) {
           <div className="pub-signature-cta-actions">
             <ExtLink href={EXT.store} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
             <Link href="/shops" className="pub-btn pub-btn-ghost">店舗で購入する</Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export function DXPage() {
+  return (
+    <main className="pub-page pub-dx-page">
+      <header className="pub-page-head">
+        <div className="t-label">DX Initiative</div>
+        <h1 className="t-mincho">里の味みかわ の DX</h1>
+        <p>八百屋がつくる、地域に根ざしたデジタル変革。</p>
+      </header>
+
+      {/* Hero */}
+      <section className="pub-dx-hero">
+        <div className="pub-dx-hero-inner">
+          <div className="pub-dx-hero-text">
+            <div className="t-label" style={{ color: "var(--c-orange-400)" }}>Our Approach</div>
+            <h2 className="t-mincho">百年続く商いを、<br/>デジタルで次の世代へ。</h2>
+            <p>創業から続けてきた「食卓に寄り添う八百屋」の役割を、今の暮らしに合わせて再構築しています。リアルタイム価格、弁当予約、農家との統合プラットフォーム — みかわが進める DX は、お客様・農家・地域をつなぐための地道な取り組みです。</p>
+            <div className="pub-dx-hero-stats">
+              <div className="stat"><b>5+</b><span>連携ツール</span></div>
+              <div className="stat"><b>3</b><span>店舗 / 配達網</span></div>
+              <div className="stat"><b>1</b><span>統合データ基盤</span></div>
+            </div>
+          </div>
+          <div className="pub-dx-hero-art" aria-hidden>
+            <div className="pub-dx-diagram">
+              <div className="node node-customer">お客様</div>
+              <div className="node node-farmer">農家</div>
+              <div className="hub">
+                <span className="hub-label">里の味みかわ DX</span>
+              </div>
+              <div className="node node-staff">スタッフ</div>
+              <div className="node node-data">統合データ基盤</div>
+              <svg className="pub-dx-diagram-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                <line x1="20" y1="20" x2="50" y2="50" />
+                <line x1="80" y1="20" x2="50" y2="50" />
+                <line x1="20" y1="80" x2="50" y2="50" />
+                <line x1="80" y1="80" x2="50" y2="50" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Initiatives */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">Initiatives</div>
+            <h3 className="t-mincho">いま動いている取り組み</h3>
+            <p className="pub-lead">お客様・農家・スタッフ、それぞれの体験を一段引き上げる 6 つの仕組み。</p>
+          </div>
+        </header>
+        <div className="pub-dx-grid">
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>📡</div>
+            <h4 className="t-mincho">野菜のリアルタイム価格配信</h4>
+            <p>毎朝の店頭価格を 1 ボタンで LINE 友だち全員に配信。お客様は来店前に今日のおすすめと値段を確認できます。</p>
+            <div className="meta">サイト + LINE 公式アカウント連携</div>
+          </article>
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>🍱</div>
+            <h4 className="t-mincho">弁当のオンライン予約</h4>
+            <p>電話受付に頼らない 24 時間オンライン予約。週替わりカタログから選んで、岩国エリアへ配達まで完結します。</p>
+            <div className="meta">order.satonoaji-mikawa.net</div>
+          </article>
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>🛒</div>
+            <h4 className="t-mincho">産地直送オンラインストア</h4>
+            <p>看板商品「大吟醸の奈良漬」をはじめ、地元の食材を全国へお届け。Shopify を活用した本格 EC 基盤を運用中。</p>
+            <div className="meta">www.satonoaji-mikawa.com</div>
+          </article>
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>🤝</div>
+            <h4 className="t-mincho">アグリパートナーズ連携</h4>
+            <p>協同組合「いわくにアグリパートナーズ」を立ち上げ、地元農家との連携プラットフォームを構築。畑と食卓を直接つなぎます。</p>
+            <div className="meta">いわくにアグリパートナーズ</div>
+          </article>
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>🗄️</div>
+            <h4 className="t-mincho">統合データ基盤</h4>
+            <p>価格・お知らせ・商品情報を 1 つのクラウドデータベースに集約。社内 DX の全機能が同じ基盤の上で動きます。</p>
+            <div className="meta">Supabase (PostgreSQL)</div>
+          </article>
+          <article className="pub-dx-card">
+            <div className="ico" aria-hidden>🔐</div>
+            <h4 className="t-mincho">統合管理コンソール</h4>
+            <p>スタッフが価格・お知らせ・商品をひとつの管理画面で運用。役割別アクセス権で、現場が安全に手を動かせる設計です。</p>
+            <div className="meta">Auth.js (NextAuth)</div>
+          </article>
+        </div>
+      </section>
+
+      {/* Roadmap */}
+      <section className="pub-section">
+        <header className="pub-section-head">
+          <div>
+            <div className="t-label">Roadmap</div>
+            <h3 className="t-mincho">これから取り組むこと</h3>
+            <p className="pub-lead">既存の仕組みを土台に、お客様・農家の声を反映しながら拡張していきます。</p>
+          </div>
+        </header>
+        <ol className="pub-dx-roadmap">
+          <li>
+            <div className="step">Next</div>
+            <div className="content">
+              <h4 className="t-mincho">在庫・入荷情報のリアルタイム公開</h4>
+              <p>店頭の入荷状況を価格と一緒に公開し、品切れの「行ってがっかり」をなくします。</p>
+            </div>
+          </li>
+          <li>
+            <div className="step">2026</div>
+            <div className="content">
+              <h4 className="t-mincho">農家側ダッシュボード</h4>
+              <p>契約農家がスマートフォンから出荷予定・販売状況を確認できる仕組みを整備中です。</p>
+            </div>
+          </li>
+          <li>
+            <div className="step">2026</div>
+            <div className="content">
+              <h4 className="t-mincho">顧客行動データ統合</h4>
+              <p>LINE 配信・予約サイト・店頭購買のデータを統合し、お一人ひとりに合わせたご案内を可能にします。</p>
+            </div>
+          </li>
+          <li>
+            <div className="step">Future</div>
+            <div className="content">
+              <h4 className="t-mincho">AI による需要・収穫予測</h4>
+              <p>過去データと天気を組み合わせて、農家・店舗側の仕入れ判断を支援する仕組みを検討しています。</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      {/* CTA */}
+      <section className="pub-section pub-dx-cta">
+        <div className="pub-dx-cta-inner">
+          <div>
+            <div className="t-label">Contact</div>
+            <h3 className="t-mincho">取り組みへのお問い合わせ</h3>
+            <p>取材・行政連携・パートナーシップなど、みかわの DX について詳しく知りたい方はお気軽にご連絡ください。</p>
+          </div>
+          <div className="pub-dx-cta-actions">
+            <Link href="/shops" className="pub-btn pub-btn-primary pub-btn-lg">お問い合わせ先を見る</Link>
+            <Link href="/agri" className="pub-btn pub-btn-ghost">農家との取り組みも見る</Link>
           </div>
         </div>
       </section>
