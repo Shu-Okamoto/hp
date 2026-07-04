@@ -243,6 +243,14 @@
 }
 .pub-pcard .img.tone-green  { background-color: var(--c-green-500); }
 .pub-pcard .img.tone-orange { background-color: var(--c-orange-400); }
+/* Real photo variant: replaces the placeholder tone/pattern. */
+.pub-pcard .img.has-photo { background: none; overflow: hidden; padding: 0; align-items: flex-end; }
+.pub-pcard .img.has-photo img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.pub-pcard .img.has-photo .tag { position: relative; z-index: 2; margin: 12px; }
 .pub-pcard .img .tag {
   background: rgba(255,255,255,0.94);
   color: var(--c-primary);
@@ -925,6 +933,13 @@
 @media (min-width: 960px) { .pub-detail-hero { height: 460px; } }
 .pub-detail-hero.tone-green  { background-color: var(--c-green-500); }
 .pub-detail-hero.tone-orange { background-color: var(--c-orange-400); }
+.pub-detail-hero.has-photo { background: none; overflow: hidden; padding: 0; align-items: flex-end; }
+.pub-detail-hero.has-photo img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.pub-detail-hero.has-photo .tag { position: relative; z-index: 2; margin: 16px; }
 .pub-detail-hero .tag {
   background: rgba(255,255,255,0.94);
   color: var(--c-primary);

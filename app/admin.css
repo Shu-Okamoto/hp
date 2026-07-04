@@ -390,6 +390,17 @@ textarea.adm-input { resize: vertical; line-height: 1.6; }
 }
 .adm-mini-img.tone-green  { background-color: var(--c-green-500); }
 .adm-mini-img.tone-orange { background-color: var(--c-orange-400); }
+/* When a real image is set, drop the placeholder pattern and let object-fit
+   drive the thumb. Keeps the same 44×44 slot. */
+img.adm-mini-img {
+  object-fit: cover;
+  background: none;
+  background-image: none;
+}
+/* Edit-pane image actions row (file input + remove). */
+.adm-image-preview .adm-image-actions {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
 
 .adm-empty {
   padding: 32px 16px;

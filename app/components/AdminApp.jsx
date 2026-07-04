@@ -761,6 +761,25 @@ function ProductManager() {
     if (editingId === id) setEditingId(null);
   };
 
+  // Upload a product image to Supabase Storage and set image_url on
+  // the working copy. UI feedback via the shared status pill.
+  const uploadProductImage = async (id, file) => {
+    if (!file) return;
+    setStatus({ kind: "info", msg: "画像アップロード中…" });
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const r = await fetch("/api/products/upload", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      updateProduct(id, { imageUrl: j.url });
+      setStatus({ kind: "ok", msg: "画像を貼りました（保存ボタンで確定）" });
+      setTimeout(() => setStatus((s) => (s?.kind === "ok" ? null : s)), 2500);
+    } catch (e) {
+      setStatus({ kind: "err", msg: `画像アップロード失敗: ${e.message}` });
+    }
+  };
+
   // Swap product with neighbor. Order in the working array drives the
   // position field on save (setProducts assigns index → position).
   const moveProduct = (id, delta) =>
@@ -823,7 +842,9 @@ function ProductManager() {
                     title="下へ移動（保存ボタンで確定）"
                     aria-label="下へ移動">▼</button>
                 </div>
-                <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />
+                {p.imageUrl
+                  ? <img className="adm-mini-img" src={p.imageUrl} alt="" />
+                  : <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />}
                 <div className="info">
                   <div className="t-mincho">{p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}</div>
                   <div className="meta">{p.category}　{fmt(p.priceJpy)}{p.unit}</div>
@@ -854,6 +875,31 @@ function ProductManager() {
               <label className="adm-field"><span>URLスラグ (handle)</span>
                 <input className="adm-input" value={editing.handle}
                   onChange={(e) => updateProduct(editing.id, { handle: e.target.value.replace(/\s+/g, "-") })} />
+                <small style={{ color: "var(--c-text-sub)", marginTop: 4 }}>
+                  Shopify の商品ハンドルと揃えると、カート・購入ボタンが正しく Shopify の該当商品ページに飛びます。
+                </small>
+              </label>
+              <label className="adm-field">
+                <span>商品画像</span>
+                <div className="adm-image-picker">
+                  {editing.imageUrl ? (
+                    <div className="adm-image-preview">
+                      <img src={editing.imageUrl} alt="プレビュー" />
+                      <div className="adm-image-actions">
+                        <input type="file" accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => uploadProductImage(editing.id, e.target.files?.[0])} />
+                        <button type="button" className="adm-btn-link adm-btn-danger"
+                          onClick={() => updateProduct(editing.id, { imageUrl: "" })}>画像を外す</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="adm-input"
+                      onChange={(e) => uploadProductImage(editing.id, e.target.files?.[0])} />
+                  )}
+                  <small style={{ color: "var(--c-text-sub)" }}>
+                    JPEG / PNG / WebP、最大 8MB。Supabase Storage の product-images バケットに保存されます。
+                  </small>
+                </div>
               </label>
               <div className="adm-row">
                 <label className="adm-field"><span>カテゴリ</span>

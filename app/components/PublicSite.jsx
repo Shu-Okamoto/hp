@@ -25,6 +25,20 @@ const EXT = {
   bento: "https://order.satonoaji-mikawa.net/free/home",
   agri:  "https://www.iwakuniagripartners.com",
 };
+
+// Build a Shopify product-page URL from an hp.products handle. When the
+// handle matches the Shopify product's own handle, this drops the visitor
+// straight onto the product detail on the store where they can add to
+// cart. If handle is missing, falls back to the store root.
+const storeProductUrl = (handle) =>
+  handle ? `${EXT.store}/products/${encodeURIComponent(handle)}` : EXT.store;
+
+// Shopify's cart add-to-cart URL — needs a variant id. Kept here as a
+// helper so we can wire it up once we start syncing variant ids from
+// Shopify. Until then, storeProductUrl() is what the UI uses.
+const cartAddUrl = (variantId, quantity = 1) =>
+  variantId ? `${EXT.store}/cart/${variantId}:${quantity}` : EXT.store;
+
 const ExtLink = ({ href, className, children }) => (
   <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
     {children} <span aria-hidden className="pub-ext">↗</span>
@@ -198,7 +212,8 @@ const Hero = () => (
 // ── Product grid ────────────────────────────────────────────
 const ProductCard = ({ p }) => (
   <Link className="pub-pcard is-clickable" href={`/products/${encodeURIComponent(p.handle || p.id)}`}>
-    <div className={`img tone-${p.imgTone || "default"}`}>
+    <div className={`img tone-${p.imgTone || "default"} ${p.imageUrl ? "has-photo" : ""}`}>
+      {p.imageUrl && <img src={p.imageUrl} alt={p.title} />}
       <span className="tag">{p.category}</span>
     </div>
     <div className="body">
@@ -511,7 +526,8 @@ export function ProductDetailPage({ product: serverProduct, handle, related: ser
         ]} />
       </div>
       <article className="pub-detail-product">
-        <div className={`pub-detail-hero img tone-${product.imgTone || "default"}`}>
+        <div className={`pub-detail-hero img tone-${product.imgTone || "default"} ${product.imageUrl ? "has-photo" : ""}`}>
+          {product.imageUrl && <img src={product.imageUrl} alt={product.title} />}
           <span className="tag">{product.category}</span>
         </div>
         <div className="pub-detail-body">
@@ -523,11 +539,11 @@ export function ProductDetailPage({ product: serverProduct, handle, related: ser
               {product.category === "弁当" ? (
                 <>
                   <ExtLink href={EXT.bento} className="pub-btn pub-btn-primary">お弁当を予約する</ExtLink>
-                  <ExtLink href={EXT.store} className="pub-btn pub-btn-ghost">オンラインストアへ</ExtLink>
+                  <ExtLink href={storeProductUrl(product.handle)} className="pub-btn pub-btn-ghost">オンラインストアへ</ExtLink>
                 </>
               ) : (
                 <>
-                  <ExtLink href={EXT.store} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
+                  <ExtLink href={storeProductUrl(product.handle)} className="pub-btn pub-btn-primary">カートに入れる</ExtLink>
                   <Link className="pub-btn pub-btn-ghost" href="/shops">店舗で予約</Link>
                 </>
               )}
@@ -821,7 +837,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
               {product && (
                 <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
               )}
-              <ExtLink href={EXT.store} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
+              <ExtLink href={storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
             </div>
           </div>
         </div>
@@ -894,7 +910,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
             <p>ギフトボックス・少量パックも各種ご用意しています。オンラインストアまたは店舗にてお求めください。</p>
           </div>
           <div className="pub-signature-cta-actions">
-            <ExtLink href={EXT.store} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
+            <ExtLink href={storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
             <Link href="/shops" className="pub-btn pub-btn-ghost">店舗で購入する</Link>
           </div>
         </div>
