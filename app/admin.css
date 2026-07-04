@@ -221,6 +221,22 @@ textarea.adm-input { resize: vertical; line-height: 1.6; }
    being fully hidden from the admin view. */
 .adm-list li.is-hidden { opacity: 0.55; }
 .adm-list li.is-hidden .adm-mini-img { filter: grayscale(1); }
+
+/* Reorder up/down arrows on the left edge of each product row. */
+.adm-list-reorder { display: flex; flex-direction: column; gap: 2px; }
+.adm-reorder-btn {
+  background: none; border: 1px solid var(--c-border);
+  border-radius: 4px;
+  width: 22px; height: 18px;
+  display: grid; place-items: center;
+  font-size: 9px; color: var(--c-text-sub);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.adm-reorder-btn:hover:not(:disabled) { background: var(--c-bg-alt); color: var(--c-primary); }
+.adm-reorder-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .adm-toggle-lg > span:first-child::after { width: 18px; height: 18px; }
 .adm-toggle-lg.is-on > span:first-child::after { left: 18px; }
 

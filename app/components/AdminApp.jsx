@@ -761,6 +761,18 @@ function ProductManager() {
     if (editingId === id) setEditingId(null);
   };
 
+  // Swap product with neighbor. Order in the working array drives the
+  // position field on save (setProducts assigns index → position).
+  const moveProduct = (id, delta) =>
+    setProducts((cur) => {
+      const i = cur.findIndex((p) => p.id === id);
+      const j = i + delta;
+      if (i < 0 || j < 0 || j >= cur.length) return cur;
+      const next = cur.slice();
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+
   const startNew = () => {
     const id = `p-${Date.now().toString(36)}`;
     const newP = {
@@ -797,8 +809,20 @@ function ProductManager() {
         <section className="adm-card">
           <h3>商品一覧 ({products.length})</h3>
           <ul className="adm-list">
-            {products.map((p) => (
+            {products.map((p, idx) => (
               <li key={p.id} className={`${editingId === p.id ? "is-active" : ""} ${!p.visible ? "is-hidden" : ""}`}>
+                <div className="adm-list-reorder">
+                  <button className="adm-reorder-btn"
+                    onClick={(e) => { e.stopPropagation(); moveProduct(p.id, -1); }}
+                    disabled={idx === 0}
+                    title="上へ移動（保存ボタンで確定）"
+                    aria-label="上へ移動">▲</button>
+                  <button className="adm-reorder-btn"
+                    onClick={(e) => { e.stopPropagation(); moveProduct(p.id, +1); }}
+                    disabled={idx === products.length - 1}
+                    title="下へ移動（保存ボタンで確定）"
+                    aria-label="下へ移動">▼</button>
+                </div>
                 <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />
                 <div className="info">
                   <div className="t-mincho">{p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}</div>
