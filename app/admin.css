@@ -211,6 +211,16 @@ textarea.adm-input { resize: vertical; line-height: 1.6; }
 .adm-toggle.is-on { color: var(--c-primary); }
 .adm-toggle-lg { padding: 6px 14px 6px 8px; font-size: 13px; }
 .adm-toggle-lg > span:first-child { width: 38px; height: 22px; }
+/* Compact toggle for inline list rows (e.g. product 表示/非表示). */
+.adm-toggle-sm { padding: 2px 8px 2px 4px; font-size: 11px; gap: 6px; }
+.adm-toggle-sm > span:first-child { width: 26px; height: 14px; }
+.adm-toggle-sm > span:first-child::after { width: 10px; height: 10px; top: 2px; }
+.adm-toggle-sm.is-on > span:first-child::after { left: 14px; }
+
+/* Product list rows: dim non-visible items so they read as archived without
+   being fully hidden from the admin view. */
+.adm-list li.is-hidden { opacity: 0.55; }
+.adm-list li.is-hidden .adm-mini-img { filter: grayscale(1); }
 .adm-toggle-lg > span:first-child::after { width: 18px; height: 18px; }
 .adm-toggle-lg.is-on > span:first-child::after { left: 18px; }
 

@@ -798,13 +798,19 @@ function ProductManager() {
           <h3>商品一覧 ({products.length})</h3>
           <ul className="adm-list">
             {products.map((p) => (
-              <li key={p.id} className={editingId === p.id ? "is-active" : ""}>
+              <li key={p.id} className={`${editingId === p.id ? "is-active" : ""} ${!p.visible ? "is-hidden" : ""}`}>
                 <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />
                 <div className="info">
                   <div className="t-mincho">{p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}</div>
                   <div className="meta">{p.category}　{fmt(p.priceJpy)}{p.unit}</div>
                 </div>
                 <div className="adm-list-actions">
+                  <button
+                    className={`adm-toggle adm-toggle-sm ${p.visible ? "is-on" : ""}`}
+                    onClick={(e) => { e.stopPropagation(); updateProduct(p.id, { visible: !p.visible }); }}
+                    title={p.visible ? "クリックで非表示にする（保存ボタンで確定）" : "クリックで表示に戻す（保存ボタンで確定）"}>
+                    <span /> {p.visible ? "表示中" : "非表示"}
+                  </button>
                   <button className="adm-btn-link" onClick={() => setEditingId(p.id)}>編集</button>
                   <button className="adm-btn-link adm-btn-danger" onClick={() => removeProduct(p.id)}>削除</button>
                 </div>
