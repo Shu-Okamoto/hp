@@ -33,11 +33,17 @@ const EXT = {
 const storeProductUrl = (handle) =>
   handle ? `${EXT.store}/products/${encodeURIComponent(handle)}` : EXT.store;
 
-// Shopify's cart add-to-cart URL — needs a variant id. Kept here as a
-// helper so we can wire it up once we start syncing variant ids from
-// Shopify. Until then, storeProductUrl() is what the UI uses.
+// Shopify cart permalink — adds the variant straight to the cart and
+// lands the visitor on the cart page. Used when a product carries a
+// synced variantId; otherwise we fall back to the product page.
 const cartAddUrl = (variantId, quantity = 1) =>
   variantId ? `${EXT.store}/cart/${variantId}:${quantity}` : EXT.store;
+
+// Best purchase link for a product: direct cart add when we know the
+// variant, product page when we only know the handle, store root as
+// the last resort.
+const buyUrl = (p) =>
+  p?.variantId ? cartAddUrl(p.variantId) : storeProductUrl(p?.handle);
 
 const ExtLink = ({ href, className, children }) => (
   <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
@@ -543,7 +549,7 @@ export function ProductDetailPage({ product: serverProduct, handle, related: ser
                 </>
               ) : (
                 <>
-                  <ExtLink href={storeProductUrl(product.handle)} className="pub-btn pub-btn-primary">カートに入れる</ExtLink>
+                  <ExtLink href={buyUrl(product)} className="pub-btn pub-btn-primary">カートに入れる</ExtLink>
                   <Link className="pub-btn pub-btn-ghost" href="/shops">店舗で予約</Link>
                 </>
               )}
@@ -837,7 +843,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
               {product && (
                 <div className="price">¥{product.priceJpy.toLocaleString()}<small>{product.unit}</small></div>
               )}
-              <ExtLink href={storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
+              <ExtLink href={product ? buyUrl(product) : storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary">オンラインストアで購入</ExtLink>
             </div>
           </div>
         </div>
@@ -910,7 +916,7 @@ export function SignaturePage({ product: serverProduct } = {}) {
             <p>ギフトボックス・少量パックも各種ご用意しています。オンラインストアまたは店舗にてお求めください。</p>
           </div>
           <div className="pub-signature-cta-actions">
-            <ExtLink href={storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
+            <ExtLink href={product ? buyUrl(product) : storeProductUrl("daiginjo-narazuke")} className="pub-btn pub-btn-primary pub-btn-lg">オンラインストアで購入</ExtLink>
             <Link href="/shops" className="pub-btn pub-btn-ghost">店舗で購入する</Link>
           </div>
         </div>

@@ -24,6 +24,8 @@ function fromDb(r) {
     imgTone: r.img_tone || "",
     imageUrl: r.image_url || undefined,
     visible: r.visible,
+    variantId: r.variant_id || undefined,
+    syncedAt: r.synced_at || undefined,
   };
 }
 
@@ -39,6 +41,8 @@ function toDb(p, position) {
     img_tone: p.imgTone || "",
     image_url: p.imageUrl || null,
     visible: p.visible !== false,
+    variant_id: p.variantId || null,
+    synced_at: p.syncedAt || null,
     position,
   };
 }

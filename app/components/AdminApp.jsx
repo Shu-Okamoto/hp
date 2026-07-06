@@ -755,6 +755,37 @@ function ProductManager() {
     setStatus(null);
   };
 
+  // Pull products from Shopify into hp.products, then reload the list.
+  // Server-side merge keeps local presentation fields (position /
+  // visible / unit / category); unsaved local edits would be lost, so
+  // we require a clean state first.
+  const syncFromShopify = async () => {
+    if (saving) return;
+    if (isDirty) {
+      setStatus({ kind: "err", msg: "未保存の変更があります。保存または破棄してから同期してください。" });
+      return;
+    }
+    if (!confirm("Shopify の商品情報を取り込みます。商品名・価格・説明・画像が Shopify の内容で上書きされます（表示順・表示/非表示はそのまま）。よろしいですか？")) return;
+    setSaving(true);
+    setStatus({ kind: "info", msg: "Shopify と同期中…" });
+    try {
+      const r = await fetch("/api/shopify/sync", { method: "POST" });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      // Reload the authoritative list.
+      const r2 = await fetch("/api/products?all=1", { cache: "no-store" });
+      const data = await r2.json();
+      setServerProducts(data);
+      setProducts(data);
+      setEditingId(null);
+      setStatus({ kind: "ok", msg: `同期完了: 更新${j.updated}件・新規${j.created}件・ローカル専用${j.localOnly}件` });
+    } catch (e) {
+      setStatus({ kind: "err", msg: `同期失敗: ${e.message}` });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const removeProduct = (id) => {
     if (!confirm("削除しますか？（保存ボタンで確定）")) return;
     setProducts((cur) => cur.filter((p) => p.id !== id));
@@ -813,7 +844,7 @@ function ProductManager() {
 
   return (
     <AdminPage title="商品管理"
-      lead="編集して「保存」で公開反映。Shopify連携は今後の本番化フェーズで段階的に差し替えます。"
+      lead="編集して「保存」で公開反映。「Shopify から同期」で商品名・価格・説明・画像をストアの内容に揃えます（表示順・表示/非表示はこちらの設定を維持）。"
       action={
         <div className="adm-page-action-row">
           {status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}
@@ -821,6 +852,8 @@ function ProductManager() {
           <button className="adm-btn adm-btn-primary" onClick={save} disabled={!isDirty || saving}>
             {saving ? "保存中…" : isDirty ? `保存 (${changeCount}件)` : "保存済み"}
           </button>
+          <button className="adm-btn" onClick={syncFromShopify} disabled={saving}
+            title="Shopify の商品情報を取り込みます">⇆ Shopify から同期</button>
           <button className="adm-btn" onClick={startNew} disabled={saving}>＋ 商品を追加</button>
         </div>
       }>
@@ -846,7 +879,10 @@ function ProductManager() {
                   ? <img className="adm-mini-img" src={p.imageUrl} alt="" />
                   : <div className={`adm-mini-img tone-${p.imgTone || "default"}`} />}
                 <div className="info">
-                  <div className="t-mincho">{p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}</div>
+                  <div className="t-mincho">
+                    {p.title} {!p.visible && <small style={{ color: "#b8423a" }}>(非表示)</small>}
+                    {p.syncedAt && <span className="adm-sync-badge" title={`Shopify 同期済み (${p.syncedAt.slice(0, 10)})`}>Shopify</span>}
+                  </div>
                   <div className="meta">{p.category}　{fmt(p.priceJpy)}{p.unit}</div>
                 </div>
                 <div className="adm-list-actions">

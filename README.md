@@ -141,11 +141,32 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
    - `supabase/migrations/002_posts.sql` — `hp.posts` テーブル（お知らせ）
    - `supabase/migrations/003_products.sql` — `hp.products` テーブル
    - `supabase/migrations/004_storage.sql` — `post-images` Storage バケット（画像アップロード用、public）
+   - `supabase/migrations/005_signature_product.sql` — 看板商品「大吟醸の奈良漬」
+   - `supabase/migrations/006_product_images.sql` — `product-images` Storage バケット（商品画像用、public）
+   - `supabase/migrations/007_shopify_sync.sql` — `variant_id` / `synced_at` カラム（Shopify 同期用）
 5. Vercel → Environment Variables に上記 3 つを追加 → **Redeploy**。
 6. 動作確認:
    - `/admin → 価格管理` で値を変更 → `/price` で反映
    - `/admin → クイック投稿` で投稿 → `/news` で反映
    - `/admin → 商品管理` で編集 → `/products` で反映
+
+### Shopify 商品同期
+
+商品管理の「⇆ Shopify から同期」ボタンで、Shopify ストアの商品を `hp.products` に取り込みます。
+
+1. Shopify 管理画面 → **アプリと販売チャネル → アプリ開発** → カスタムアプリを作成
+2. **Storefront API** のアクセススコープで `unauthenticated_read_product_listings` を有効化してインストール
+3. 発行された **Storefront API アクセストークン** をコピー
+4. Vercel → Environment Variables に設定 → Redeploy:
+   - `SHOPIFY_STORE_DOMAIN` = `mikawa2020.myshopify.com`
+   - `SHOPIFY_STOREFRONT_TOKEN` = 手順3のトークン
+
+同期の動作:
+- **Shopify が勝つ項目**: 商品名・価格・説明・画像 (Shopify に featured image がある場合)・variant ID
+- **こちらが勝つ項目**: 表示順 (position)・表示/非表示・単位・カテゴリ・画像トーン
+- handle が一致する行同士を紐づけ。Shopify にだけある商品は末尾に新規追加、こちらにしかない商品 (ローカル専用) は触りません。
+- 同期済み商品には管理画面で緑の「Shopify」バッジが付きます。
+- variant ID が入った商品は、公開側の「カートに入れる」がカート直追加 URL (`/cart/{variant}:1`) に自動昇格します。
 
 ### LINE 配信を有効にする
 
