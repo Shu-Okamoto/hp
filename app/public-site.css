@@ -267,6 +267,12 @@
 .pub-pcard .body p {
   font-size: var(--fs-sm); line-height: 1.7;
   color: var(--c-text); margin: 0 0 14px; flex: 1;
+  /* Shopify-synced descriptions can run long — clamp to 2 lines with
+     an ellipsis; the 詳しく link below leads to the full text. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .pub-pcard .body .row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .pub-pcard .body .price {
