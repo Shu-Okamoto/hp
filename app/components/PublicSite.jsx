@@ -467,8 +467,13 @@ export function HomePage({
   const posts = initialPosts ?? store.posts;
   const products = initialProducts ?? store.products;
   const signatureProduct = products.find((p) => p.handle === "daiginjo-narazuke");
-  // Don't double-show the signature in the regular grid below.
-  const gridProducts = products.filter((p) => p.handle !== "daiginjo-narazuke");
+  // Home shows the curated hp-original lineup only. Products auto-created
+  // by the Shopify sync carry a "p-shopify-" id prefix — those live on
+  // /products but stay off the homepage grid. The signature item is
+  // featured in its own section, so it's excluded from the grid too.
+  const gridProducts = products.filter(
+    (p) => p.handle !== "daiginjo-narazuke" && !String(p.id).startsWith("p-shopify-")
+  );
   return (
     <>
       <Stories prices={prices} />
