@@ -50,26 +50,49 @@ function numericId(gid) {
   return m ? m[1] : null;
 }
 
+/**
+ * Normalizes SHOPIFY_STORE_DOMAIN into a bare hostname. Users commonly
+ * paste the full URL (https://…/) into the env var; without stripping,
+ * the request URL becomes "https://https://…" and fetch dies with the
+ * opaque "fetch failed".
+ */
+export function shopifyDomain() {
+  return (process.env.SHOPIFY_STORE_DOMAIN || "")
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "");
+}
+
 async function fetchAllShopifyProducts() {
   const all = [];
   let cursor = null;
+  const domain = shopifyDomain();
+  const endpoint = `https://${domain}/api/${API_VERSION}/graphql.json`;
   // Page through — stores rarely exceed a few hundred products; the
   // 20-page cap is a runaway guard, not a real limit.
   for (let page = 0; page < 20; page++) {
-    const res = await fetch(
-      `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/${API_VERSION}/graphql.json`,
-      {
+    let res;
+    try {
+      res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_TOKEN,
+          "X-Shopify-Storefront-Access-Token": (process.env.SHOPIFY_STOREFRONT_TOKEN || "").trim(),
         },
         body: JSON.stringify({ query: SYNC_QUERY, variables: { cursor } }),
         cache: "no-store",
-      }
-    );
+      });
+    } catch (e) {
+      // Surface the underlying network cause (ENOTFOUND, ECONNREFUSED…)
+      // instead of undici's bare "fetch failed".
+      const cause = e.cause?.code || e.cause?.message || e.message;
+      throw new Error(`Shopify へ接続できません (${domain}): ${cause}。SHOPIFY_STORE_DOMAIN が「mikawa2020.myshopify.com」の形式（https:// なし）か確認してください。`);
+    }
     if (!res.ok) {
       const body = await res.text().catch(() => "");
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Shopify Storefront ${res.status}: トークンが無効です。SHOPIFY_STOREFRONT_TOKEN を確認してください。`);
+      }
       throw new Error(`Shopify Storefront ${res.status}: ${body.slice(0, 300)}`);
     }
     const json = await res.json();

@@ -1,4 +1,5 @@
 import { auth } from "../../../../auth";
+import { shopifyDomain } from "../../../lib/shopify-sync";
 
 /**
  * Shopify products — server-side proxy.
@@ -66,12 +67,12 @@ export async function GET() {
     return jerror(503, "Shopify env not configured", { missing: missingKeys });
   }
   const res = await fetch(
-    `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/${API_VERSION}/graphql.json`,
+    `https://${shopifyDomain()}/api/${API_VERSION}/graphql.json`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_TOKEN,
+        "X-Shopify-Storefront-Access-Token": (process.env.SHOPIFY_STOREFRONT_TOKEN || "").trim(),
       },
       body: JSON.stringify({ query: PRODUCT_LIST_QUERY }),
       next: { revalidate: 60 },
@@ -109,7 +110,7 @@ export async function POST(req) {
   // Admin API distinguishes create vs update by URL path; for simplicity
   // the prototype only creates here. Real edits would PUT to /products/{id}.
   const res = await fetch(
-    `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/${API_VERSION}/products.json`,
+    `https://${shopifyDomain()}/admin/api/${API_VERSION}/products.json`,
     {
       method: "POST",
       headers: {
