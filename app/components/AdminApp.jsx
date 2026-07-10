@@ -464,6 +464,16 @@ function PriceManager() {
   // Local-only edit helpers (no network).
   const update = (id, patch) =>
     setPrices((cur) => cur.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  // Swap with neighbor — array order becomes the position column on save.
+  const moveRow = (id, delta) =>
+    setPrices((cur) => {
+      const i = cur.findIndex((p) => p.id === id);
+      const j = i + delta;
+      if (i < 0 || j < 0 || j >= cur.length) return cur;
+      const next = cur.slice();
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
   const flush = (id) => {
     const d = draft[id]; if (!d) return;
     if (d.priceJpy != null) update(id, { priceJpy: yenToInt(d.priceJpy) });
@@ -513,13 +523,32 @@ function PriceManager() {
       }>
       <table className="adm-table">
         <thead>
-          <tr><th></th><th>品目</th><th>単位</th><th>価格</th><th>表示</th><th>目玉</th><th></th></tr>
+          <tr><th></th><th></th><th>品目</th><th>単位</th><th>価格</th><th>表示</th><th>目玉</th><th></th></tr>
         </thead>
         <tbody>
-          {prices.map((p) => (
+          {prices.map((p, idx) => (
             <tr key={`${p.id}-${revision}`}>
+              <td>
+                <div className="adm-list-reorder">
+                  <button className="adm-reorder-btn"
+                    onClick={() => moveRow(p.id, -1)}
+                    disabled={idx === 0}
+                    title="上へ移動（保存ボタンで確定）"
+                    aria-label="上へ移動">▲</button>
+                  <button className="adm-reorder-btn"
+                    onClick={() => moveRow(p.id, +1)}
+                    disabled={idx === prices.length - 1}
+                    title="下へ移動（保存ボタンで確定）"
+                    aria-label="下へ移動">▼</button>
+                </div>
+              </td>
               <td><div className="adm-emoji-cell">{p.emoji}</div></td>
-              <td className="t-mincho" style={{ fontSize: 14 }}>{p.name}</td>
+              <td>
+                <input className="adm-input adm-input-sm t-mincho" style={{ minWidth: 90 }}
+                  defaultValue={p.name}
+                  onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== p.name) update(p.id, { name: v }); }}
+                  onKeyDown={(e) => e.key === "Enter" && e.target.blur()} />
+              </td>
               <td><input className="adm-input adm-input-sm" defaultValue={p.unit} onBlur={(e) => update(p.id, { unit: e.target.value })} /></td>
               <td>
                 <div className="adm-price-input">
@@ -550,6 +579,7 @@ function PriceManager() {
           ))}
           {adding && (
             <tr className="adm-row-add">
+              <td />
               <td><input className="adm-input adm-input-sm" maxLength={2} value={newRow.emoji} onChange={(e) => setNewRow({ ...newRow, emoji: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="品名" value={newRow.name} onChange={(e) => setNewRow({ ...newRow, name: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="/ 単位" value={newRow.unit} onChange={(e) => setNewRow({ ...newRow, unit: e.target.value })} /></td>
