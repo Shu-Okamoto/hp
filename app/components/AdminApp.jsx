@@ -12,6 +12,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import MikawaAPI from "../lib/api";
 import * as Auth from "../lib/auth";
 import { formatPriceMessage, todayHeadline } from "../lib/format-price-message";
+import { nameInitial } from "../lib/veggie-badge";
 
 function useAdminStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
@@ -542,7 +543,15 @@ function PriceManager() {
                     aria-label="下へ移動">▼</button>
                 </div>
               </td>
-              <td><div className="adm-emoji-cell">{p.emoji}</div></td>
+              <td>
+                <input className="adm-input adm-input-sm adm-emoji-input"
+                  defaultValue={p.emoji || ""}
+                  placeholder={nameInitial(p.name)}
+                  maxLength={4}
+                  title="絵文字が無い場合は空欄のままでOK。頭文字バッジで自動表示されます。"
+                  onBlur={(e) => { const v = e.target.value.trim(); if (v !== (p.emoji || "")) update(p.id, { emoji: v }); }}
+                  onKeyDown={(e) => e.key === "Enter" && e.target.blur()} />
+              </td>
               <td>
                 <input className="adm-input adm-input-sm t-mincho" style={{ minWidth: 90 }}
                   defaultValue={p.name}
@@ -580,7 +589,10 @@ function PriceManager() {
           {adding && (
             <tr className="adm-row-add">
               <td />
-              <td><input className="adm-input adm-input-sm" maxLength={2} value={newRow.emoji} onChange={(e) => setNewRow({ ...newRow, emoji: e.target.value })} /></td>
+              <td><input className="adm-input adm-input-sm adm-emoji-input" maxLength={4}
+                placeholder={nameInitial(newRow.name) || "🍅"}
+                title="絵文字が無い場合は空欄のままでOK。頭文字バッジで自動表示されます。"
+                value={newRow.emoji} onChange={(e) => setNewRow({ ...newRow, emoji: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="品名" value={newRow.name} onChange={(e) => setNewRow({ ...newRow, name: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="/ 単位" value={newRow.unit} onChange={(e) => setNewRow({ ...newRow, unit: e.target.value })} /></td>
               <td><input className="adm-input adm-input-sm" placeholder="280" value={newRow.priceJpy} onChange={(e) => setNewRow({ ...newRow, priceJpy: e.target.value })} /></td>

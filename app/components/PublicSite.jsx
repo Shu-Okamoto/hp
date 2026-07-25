@@ -15,6 +15,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MikawaAPI from "../lib/api";
 import { MultiShopMap, directionsUrl } from "./ShopsMap";
+import { nameInitial } from "../lib/veggie-badge";
+
+// Renders a daily-price item's emoji when set; otherwise a small
+// circular badge showing the first character of its name. Keeps ねぎ /
+// アスパラ (no dedicated Unicode emoji) visually consistent with the
+// emoji-bearing items instead of showing blank space.
+const VeggieIcon = ({ item, className = "" }) =>
+  item?.emoji
+    ? <span className={className}>{item.emoji}</span>
+    : <span className={`veggie-badge ${className}`} aria-hidden>{nameInitial(item?.name)}</span>;
 
 // ── External links ──────────────────────────────────────────
 // One source of truth for the brand's off-site destinations. Reused by
@@ -180,7 +190,7 @@ const Stories = ({ prices }) => {
         {list.map((v) => (
           <Link key={v.id} className="pub-story" href="/price">
             <div className={`pub-story-ring ${v.featured ? "is-featured" : ""}`}>
-              <div className="inner"><div className="veg">{v.emoji}</div></div>
+              <div className="inner"><div className="veg"><VeggieIcon item={v} /></div></div>
             </div>
             <div className="name">{v.name}</div>
             <div className="price">¥{v.priceJpy}</div>
@@ -609,7 +619,7 @@ export function PricePage({ prices: initialPrices } = {}) {
           <div className="pub-feature-grid">
             {featured.map((p) => (
               <article key={p.id} className="pub-feature-card">
-                <div className="emoji">{p.emoji}</div>
+                <div className="emoji"><VeggieIcon item={p} /></div>
                 <div className="body">
                   <h4 className="t-mincho">{p.name}</h4>
                   <div className="price">¥{p.priceJpy}<small>{p.unit}</small></div>
@@ -626,7 +636,7 @@ export function PricePage({ prices: initialPrices } = {}) {
         <ul className="pub-price-list">
           {rest.map((p) => (
             <li key={p.id}>
-              <span className="emoji">{p.emoji}</span>
+              <span className="emoji"><VeggieIcon item={p} /></span>
               <span className="name t-mincho">{p.name}</span>
               <span className="unit">{p.unit}</span>
               <span className="price">¥{p.priceJpy}</span>

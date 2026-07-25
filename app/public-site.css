@@ -135,6 +135,22 @@
   display: grid; place-items: center; font-size: 28px;
 }
 .pub-story .name { margin-top: 6px; font-size: var(--fs-xs); color: var(--c-text); font-weight: 500; }
+
+/* Fallback badge for daily-price items with no natural emoji (ねぎ,
+   アスパラ, etc.) — a name-initial in a soft circle, inheriting the
+   surrounding context's font-size so it drops into the Stories ring,
+   featured card and plain list rows without extra sizing rules. */
+.veggie-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.3em; height: 1.3em;
+  border-radius: 50%;
+  background: var(--c-green-100, rgba(45,90,61,0.12));
+  color: var(--c-primary);
+  font-family: var(--f-mincho);
+  font-size: 0.5em;
+  font-weight: 600;
+  line-height: 1;
+}
 .pub-story .price { font-size: var(--fs-xs); color: var(--c-accent); font-weight: 600; font-family: var(--f-en); }
 
 /* Hero */

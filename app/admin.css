@@ -151,13 +151,17 @@ textarea.adm-input { resize: vertical; line-height: 1.6; }
 .adm-emoji:hover { background: var(--c-bg); }
 .adm-emoji.is-active { border-color: var(--c-accent); background: var(--c-bg); box-shadow: 0 0 0 2px rgba(200,112,58,0.15); }
 
-.adm-emoji-cell {
-  width: 36px; height: 36px;
-  background: var(--c-bg-alt);
-  border-radius: var(--r-md);
-  display: grid; place-items: center;
-  font-size: 18px;
+/* Price-manager emoji cell — now an editable input rather than a
+   read-only cell, so ねぎ/アスパラ (no natural emoji) can just be left
+   blank; the placeholder previews the name-initial badge fallback that
+   will render on the public site. */
+.adm-emoji-input {
+  width: 44px; height: 36px;
+  text-align: center;
+  font-size: 16px;
+  padding: 0;
 }
+.adm-emoji-input::placeholder { color: var(--c-text-sub); opacity: 0.6; }
 
 /* Channel chips */
 .adm-channels { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
