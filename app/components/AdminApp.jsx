@@ -1045,10 +1045,30 @@ const emptyRecipient = () => ({
   quantity: 1, note: "",
 });
 
+// 大きめのタップ領域 (−/＋ボタン + 中央の数値) の数量ステッパー。
+// タブレットでテンキーを出さずに増減でき、直接タップ入力もできる。
+const QuantityStepper = ({ value, onChange, disabled }) => (
+  <div className="adm-qty-stepper">
+    <button type="button" className="adm-qty-btn" disabled={disabled || value <= 1}
+      onClick={() => onChange(Math.max(1, value - 1))} aria-label="数量を減らす">−</button>
+    <input className="adm-qty-input" type="text" inputMode="numeric" value={value}
+      disabled={disabled}
+      onChange={(e) => {
+        const n = parseInt(e.target.value.replace(/[^\d]/g, ""), 10);
+        onChange(Number.isFinite(n) && n > 0 ? n : 1);
+      }} />
+    <button type="button" className="adm-qty-btn" disabled={disabled}
+      onClick={() => onChange(value + 1)} aria-label="数量を増やす">＋</button>
+  </div>
+);
+
 function OrderManager() {
   const [products, setProducts] = useState(null);
   const [handle, setHandle] = useState("");
-  const [sender, setSender] = useState({ name: "", phone: "", email: "" });
+  const [sender, setSender] = useState({
+    name: "", phone: "", email: "",
+    zip: "", pref: "", city: "", address1: "", address2: "",
+  });
   const [recipients, setRecipients] = useState([emptyRecipient()]);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState(null);
@@ -1090,7 +1110,7 @@ function OrderManager() {
     setRecipients((cur) => (cur.length > 1 ? cur.filter((r) => r.id !== id) : cur));
 
   const resetForm = () => {
-    setSender({ name: "", phone: "", email: "" });
+    setSender({ name: "", phone: "", email: "", zip: "", pref: "", city: "", address1: "", address2: "" });
     setRecipients([emptyRecipient()]);
     setResults(null);
     setStatus(null);
@@ -1148,7 +1168,7 @@ function OrderManager() {
     <AdminPage title="贈答注文作成"
       lead="看板商品を選び、送り主・送り先を入力すると Shopify に下書き注文を作成します。決済・発送はされません。内容確認後、Shopify 管理画面から請求書送付等を行ってください。"
       action={status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}>
-      <div className="adm-grid two">
+      <div className="adm-grid two adm-order-form">
         <section className="adm-card">
           <h3>① 商品を選ぶ</h3>
           <label className="adm-field">
@@ -1176,19 +1196,37 @@ function OrderManager() {
 
           <h3 style={{ marginTop: 20 }}>② 送り主情報</h3>
           <label className="adm-field"><span>お名前 *</span>
-            <input className="adm-input" value={sender.name}
+            <input className="adm-input" value={sender.name} autoComplete="name"
               onChange={(e) => setSender({ ...sender, name: e.target.value })} placeholder="山田 太郎" />
           </label>
           <div className="adm-row">
             <label className="adm-field"><span>電話番号</span>
-              <input className="adm-input" value={sender.phone}
+              <input className="adm-input" type="tel" inputMode="tel" autoComplete="tel" value={sender.phone}
                 onChange={(e) => setSender({ ...sender, phone: e.target.value })} placeholder="0827-XX-XXXX" />
             </label>
             <label className="adm-field"><span>メールアドレス</span>
-              <input className="adm-input" type="email" value={sender.email}
+              <input className="adm-input" type="email" inputMode="email" autoComplete="email" value={sender.email}
                 onChange={(e) => setSender({ ...sender, email: e.target.value })} placeholder="任意（請求書送付用）" />
             </label>
           </div>
+          <div className="adm-row">
+            <label className="adm-field"><span>郵便番号</span>
+              <input className="adm-input" inputMode="numeric" autoComplete="postal-code" value={sender.zip}
+                onChange={(e) => setSender({ ...sender, zip: e.target.value })} placeholder="740-0000" />
+            </label>
+            <label className="adm-field"><span>都道府県</span>
+              <input className="adm-input" autoComplete="address-level1" value={sender.pref}
+                onChange={(e) => setSender({ ...sender, pref: e.target.value })} placeholder="山口県" />
+            </label>
+          </div>
+          <label className="adm-field"><span>市区町村・番地</span>
+            <input className="adm-input" autoComplete="address-line1" value={sender.address1}
+              onChange={(e) => setSender({ ...sender, address1: e.target.value })} placeholder="岩国市尾津町5-11-1" />
+          </label>
+          <label className="adm-field"><span>建物名・部屋番号</span>
+            <input className="adm-input" autoComplete="address-line2" value={sender.address2}
+              onChange={(e) => setSender({ ...sender, address2: e.target.value })} placeholder="任意" />
+          </label>
         </section>
 
         <section className="adm-card">
@@ -1208,7 +1246,7 @@ function OrderManager() {
                 </label>
                 <div className="adm-row">
                   <label className="adm-field"><span>郵便番号</span>
-                    <input className="adm-input" value={r.zip}
+                    <input className="adm-input" inputMode="numeric" value={r.zip}
                       onChange={(e) => updateRecipient(r.id, { zip: e.target.value })} placeholder="740-0000" />
                   </label>
                   <label className="adm-field"><span>都道府県</span>
@@ -1226,12 +1264,12 @@ function OrderManager() {
                 </label>
                 <div className="adm-row">
                   <label className="adm-field"><span>電話番号</span>
-                    <input className="adm-input" value={r.phone}
+                    <input className="adm-input" type="tel" inputMode="tel" value={r.phone}
                       onChange={(e) => updateRecipient(r.id, { phone: e.target.value })} placeholder="配送連絡用" />
                   </label>
                   <label className="adm-field"><span>数量</span>
-                    <input className="adm-input" type="number" min={1} value={r.quantity}
-                      onChange={(e) => updateRecipient(r.id, { quantity: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+                    <QuantityStepper value={r.quantity}
+                      onChange={(n) => updateRecipient(r.id, { quantity: n })} />
                   </label>
                 </div>
                 <label className="adm-field"><span>備考（のし・メッセージ等）</span>
@@ -1241,7 +1279,7 @@ function OrderManager() {
               </div>
             ))}
           </div>
-          <button type="button" className="adm-btn" onClick={addRecipient} disabled={submitting}>＋ 送り先を追加</button>
+          <button type="button" className="adm-btn adm-btn-add-recipient" onClick={addRecipient} disabled={submitting}>＋ 送り先を追加</button>
 
           <div className="adm-actions" style={{ marginTop: 18 }}>
             <button className="adm-btn-link" onClick={resetForm} disabled={submitting}>フォームをクリア</button>

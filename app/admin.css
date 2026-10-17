@@ -9,7 +9,7 @@
   font-family: var(--f-sans);
   color: var(--c-text);
 }
-@media (max-width: 720px) {
+@media (max-width: 880px) {
   .adm-root { grid-template-columns: 64px 1fr; }
   .adm-side-brand .kicker,
   .adm-side-item span:not(.ico),
@@ -562,3 +562,73 @@ img.adm-mini-img {
   margin-bottom: 10px;
 }
 .adm-recipient-head b { font-size: 13px; color: var(--c-primary); }
+
+/* ── Order Manager — tablet touch-target tuning ─────────────
+   Scoped to .adm-order-form so other admin screens (optimised for
+   mouse/desktop density) are unaffected. */
+.adm-order-form .adm-field > span { font-size: 13px; margin-bottom: 6px; display: block; }
+.adm-order-form .adm-input {
+  font-size: 16px;           /* ≥16px avoids iOS/Android auto-zoom on focus */
+  padding: 13px 14px;
+  min-height: 48px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+.adm-order-form select.adm-input { min-height: 48px; }
+.adm-order-form .adm-field { margin-bottom: 16px; }
+.adm-order-form .adm-row { gap: 14px; }
+@media (max-width: 560px) { .adm-order-form .adm-row { grid-template-columns: 1fr; } }
+
+.adm-order-form .adm-recipient { padding: 16px; border-radius: 12px; }
+.adm-order-form .adm-recipient-head { margin-bottom: 14px; }
+.adm-order-form .adm-recipient-head b { font-size: 14px; }
+.adm-order-form .adm-recipient-head button {
+  min-height: 40px; padding: 8px 14px; font-size: 13px;
+}
+
+.adm-order-form .adm-btn,
+.adm-order-form .adm-btn-primary {
+  min-height: 50px;
+  padding: 13px 24px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+.adm-order-form .adm-btn-add-recipient { width: 100%; }
+.adm-order-form .adm-actions { flex-wrap: wrap; }
+.adm-order-form .adm-actions .adm-btn-link {
+  min-height: 48px; padding: 13px 16px; font-size: 14px;
+  display: inline-flex; align-items: center;
+}
+
+/* Quantity stepper — big tap targets either side of the value. */
+.adm-qty-stepper {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--c-bg-alt);
+}
+.adm-qty-btn {
+  width: 48px; min-height: 48px;
+  border: none; background: var(--c-bg);
+  font-size: 20px; line-height: 1;
+  color: var(--c-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.adm-qty-btn:first-child { border-right: 1px solid var(--c-border); }
+.adm-qty-btn:last-child { border-left: 1px solid var(--c-border); }
+.adm-qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.adm-qty-btn:hover:not(:disabled) { background: var(--c-border); }
+.adm-qty-input {
+  flex: 1; min-width: 0;
+  border: none; background: transparent;
+  text-align: center;
+  font-size: 16px; font-family: inherit;
+  color: var(--c-text);
+  outline: none;
+}
+
+/* Order preview + history table also get a touch-friendlier bump. */
+.adm-order-form + .adm-card .adm-table td,
+.adm-order-form + .adm-card .adm-table th { padding: 10px 8px; }

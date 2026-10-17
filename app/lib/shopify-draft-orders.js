@@ -43,7 +43,7 @@ function splitName(fullName) {
 /**
  * @param {object} opts
  * @param {{handle:string,title:string,priceJpy:number,variantId?:string}} opts.product
- * @param {{name:string,phone?:string,email?:string}} opts.sender
+ * @param {{name:string,phone?:string,email?:string,zip?:string,pref?:string,city?:string,address1?:string,address2?:string}} opts.sender
  * @param {{name:string,zip?:string,pref?:string,city?:string,address1?:string,address2?:string,phone?:string,quantity:number,note?:string}} opts.recipient
  * @returns {Promise<{ok:true,id:string,name:string,url:string}|{ok:false,error:string}>}
  */
@@ -78,6 +78,11 @@ export async function createGiftDraftOrder({ product, sender, recipient }) {
       billing_address: {
         first_name: senderName.first_name,
         last_name: senderName.last_name,
+        address1: sender.address1 || "",
+        address2: sender.address2 || "",
+        city: sender.city || "",
+        province: sender.pref || "",
+        zip: sender.zip || "",
         phone: sender.phone || "",
         country: "Japan",
       },
