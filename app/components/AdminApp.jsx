@@ -29,6 +29,7 @@ const ALL_ITEMS = [
   { key: "prices",    icon: "₸",  label: "価格管理" },
   { key: "news",      icon: "📣", label: "お知らせ管理" },
   { key: "products",  icon: "🥬", label: "商品管理" },
+  { key: "orders",    icon: "🎁", label: "贈答注文作成" },
   { key: "sns",       icon: "⇆",  label: "SNS連携状況" },
 ];
 
@@ -1028,6 +1029,275 @@ function ProductManager() {
   );
 }
 
+// ── Order Manager (贈答注文 → Shopify 下書き注文) ────────────
+/**
+ * 看板商品を 1 つ選び、送り主情報 + 複数の送り先住所を入力すると、
+ * 送り先ごとに Shopify の下書き注文を 1 件ずつ作成する。
+ *
+ * 決済・在庫引当はしない。作成されるのはあくまで「下書き」で、以降は
+ * Shopify 管理画面でスタッフが内容確認・請求書送付・会計処理を行う
+ * 想定。billing_address に送り主、shipping_address に送り先を入れる
+ * ことで、贈答特有の「注文者と届け先が別人」という形を表現している。
+ */
+const emptyRecipient = () => ({
+  id: `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+  name: "", zip: "", pref: "", city: "", address1: "", address2: "", phone: "",
+  quantity: 1, note: "",
+});
+
+function OrderManager() {
+  const [products, setProducts] = useState(null);
+  const [handle, setHandle] = useState("");
+  const [sender, setSender] = useState({ name: "", phone: "", email: "" });
+  const [recipients, setRecipients] = useState([emptyRecipient()]);
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [results, setResults] = useState(null);
+  const [history, setHistory] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/products?all=1", { cache: "no-store" });
+        const data = await r.json();
+        if (!alive) return;
+        const signature = (Array.isArray(data) ? data : []).filter((p) => p.category === "看板");
+        setProducts(signature);
+        if (signature.length > 0) setHandle(signature[0].handle);
+      } catch (e) {
+        if (alive) setStatus({ kind: "err", msg: `商品の読み込みに失敗: ${e.message}` });
+      }
+    })();
+    loadHistory();
+    return () => { alive = false; };
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const r = await fetch("/api/shopify/draft-orders", { cache: "no-store" });
+      if (!r.ok) return;
+      setHistory(await r.json());
+    } catch { /* history is best-effort */ }
+  };
+
+  const product = products?.find((p) => p.handle === handle) || null;
+
+  const updateRecipient = (id, patch) =>
+    setRecipients((cur) => cur.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addRecipient = () => setRecipients((cur) => [...cur, emptyRecipient()]);
+  const removeRecipient = (id) =>
+    setRecipients((cur) => (cur.length > 1 ? cur.filter((r) => r.id !== id) : cur));
+
+  const resetForm = () => {
+    setSender({ name: "", phone: "", email: "" });
+    setRecipients([emptyRecipient()]);
+    setResults(null);
+    setStatus(null);
+  };
+
+  const submit = async () => {
+    if (submitting) return;
+    if (!product) { setStatus({ kind: "err", msg: "商品を選択してください" }); return; }
+    if (!sender.name.trim()) { setStatus({ kind: "err", msg: "送り主のお名前を入力してください" }); return; }
+    const validRecipients = recipients.filter((r) => r.name.trim());
+    if (validRecipients.length === 0) { setStatus({ kind: "err", msg: "送り先を1件以上入力してください" }); return; }
+    if (!confirm(`${product.title} の下書き注文を ${validRecipients.length}件 Shopify に作成します。よろしいですか？`)) return;
+
+    setSubmitting(true);
+    setStatus({ kind: "info", msg: `送信中… (0/${validRecipients.length})` });
+    setResults(null);
+    try {
+      const r = await fetch("/api/shopify/draft-orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product: { handle: product.handle, title: product.title, priceJpy: product.priceJpy, variantId: product.variantId },
+          sender,
+          recipients: validRecipients,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.hint || j.error || `HTTP ${r.status}`);
+      setResults(j);
+      setStatus({
+        kind: j.failed === 0 ? "ok" : "err",
+        msg: `完了: 成功 ${j.succeeded}件 / 失敗 ${j.failed}件`,
+      });
+      loadHistory();
+    } catch (e) {
+      setStatus({ kind: "err", msg: `送信失敗: ${e.message}` });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (products === null) {
+    return <AdminPage title="贈答注文作成" lead="読み込み中…" />;
+  }
+
+  if (products.length === 0) {
+    return (
+      <AdminPage title="贈答注文作成" lead="看板商品が見つかりません。">
+        <div className="adm-empty">商品管理でカテゴリ「看板」の商品を登録してから利用してください。</div>
+      </AdminPage>
+    );
+  }
+
+  return (
+    <AdminPage title="贈答注文作成"
+      lead="看板商品を選び、送り主・送り先を入力すると Shopify に下書き注文を作成します。決済・発送はされません。内容確認後、Shopify 管理画面から請求書送付等を行ってください。"
+      action={status && <span className={`adm-status adm-status-${status.kind} adm-status-pill`}>{status.msg}</span>}>
+      <div className="adm-grid two">
+        <section className="adm-card">
+          <h3>① 商品を選ぶ</h3>
+          <label className="adm-field">
+            <span>看板商品</span>
+            <select className="adm-input" value={handle} onChange={(e) => setHandle(e.target.value)}>
+              {products.map((p) => (
+                <option key={p.handle} value={p.handle}>{p.title} — {fmt(p.priceJpy)}{p.unit}</option>
+              ))}
+            </select>
+          </label>
+          {product && (
+            <div className="adm-order-preview">
+              {product.imageUrl
+                ? <img src={product.imageUrl} alt="" />
+                : <div className={`adm-mini-img tone-${product.imgTone || "default"}`} />}
+              <div>
+                <div className="t-mincho">{product.title}</div>
+                <div className="meta">{fmt(product.priceJpy)}{product.unit}</div>
+                {!product.variantId && (
+                  <small className="adm-order-warn">※ Shopify 未連携商品 — カスタム明細として下書き注文に計上されます</small>
+                )}
+              </div>
+            </div>
+          )}
+
+          <h3 style={{ marginTop: 20 }}>② 送り主情報</h3>
+          <label className="adm-field"><span>お名前 *</span>
+            <input className="adm-input" value={sender.name}
+              onChange={(e) => setSender({ ...sender, name: e.target.value })} placeholder="山田 太郎" />
+          </label>
+          <div className="adm-row">
+            <label className="adm-field"><span>電話番号</span>
+              <input className="adm-input" value={sender.phone}
+                onChange={(e) => setSender({ ...sender, phone: e.target.value })} placeholder="0827-XX-XXXX" />
+            </label>
+            <label className="adm-field"><span>メールアドレス</span>
+              <input className="adm-input" type="email" value={sender.email}
+                onChange={(e) => setSender({ ...sender, email: e.target.value })} placeholder="任意（請求書送付用）" />
+            </label>
+          </div>
+        </section>
+
+        <section className="adm-card">
+          <h3>③ 送り先（複数可）</h3>
+          <div className="adm-recipient-list">
+            {recipients.map((r, idx) => (
+              <div key={r.id} className="adm-recipient">
+                <div className="adm-recipient-head">
+                  <b>送り先 {idx + 1}</b>
+                  {recipients.length > 1 && (
+                    <button type="button" className="adm-btn-link adm-btn-danger" onClick={() => removeRecipient(r.id)}>削除</button>
+                  )}
+                </div>
+                <label className="adm-field"><span>お名前 *</span>
+                  <input className="adm-input" value={r.name}
+                    onChange={(e) => updateRecipient(r.id, { name: e.target.value })} placeholder="鈴木 花子" />
+                </label>
+                <div className="adm-row">
+                  <label className="adm-field"><span>郵便番号</span>
+                    <input className="adm-input" value={r.zip}
+                      onChange={(e) => updateRecipient(r.id, { zip: e.target.value })} placeholder="740-0000" />
+                  </label>
+                  <label className="adm-field"><span>都道府県</span>
+                    <input className="adm-input" value={r.pref}
+                      onChange={(e) => updateRecipient(r.id, { pref: e.target.value })} placeholder="山口県" />
+                  </label>
+                </div>
+                <label className="adm-field"><span>市区町村・番地</span>
+                  <input className="adm-input" value={r.city}
+                    onChange={(e) => updateRecipient(r.id, { city: e.target.value })} placeholder="岩国市尾津町5-11-1" />
+                </label>
+                <label className="adm-field"><span>建物名・部屋番号</span>
+                  <input className="adm-input" value={r.address2}
+                    onChange={(e) => updateRecipient(r.id, { address2: e.target.value })} placeholder="任意" />
+                </label>
+                <div className="adm-row">
+                  <label className="adm-field"><span>電話番号</span>
+                    <input className="adm-input" value={r.phone}
+                      onChange={(e) => updateRecipient(r.id, { phone: e.target.value })} placeholder="配送連絡用" />
+                  </label>
+                  <label className="adm-field"><span>数量</span>
+                    <input className="adm-input" type="number" min={1} value={r.quantity}
+                      onChange={(e) => updateRecipient(r.id, { quantity: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+                  </label>
+                </div>
+                <label className="adm-field"><span>備考（のし・メッセージ等）</span>
+                  <input className="adm-input" value={r.note}
+                    onChange={(e) => updateRecipient(r.id, { note: e.target.value })} placeholder="御中元／御歳暮／お祝い等" />
+                </label>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="adm-btn" onClick={addRecipient} disabled={submitting}>＋ 送り先を追加</button>
+
+          <div className="adm-actions" style={{ marginTop: 18 }}>
+            <button className="adm-btn-link" onClick={resetForm} disabled={submitting}>フォームをクリア</button>
+            <button className="adm-btn adm-btn-primary" onClick={submit} disabled={submitting}>
+              {submitting ? "送信中…" : `Shopify に下書き注文を作成 (${recipients.filter((r) => r.name.trim()).length}件)`}
+            </button>
+          </div>
+
+          {results && (
+            <ul className="adm-fanout" style={{ marginTop: 16 }}>
+              {results.results.map((r) => (
+                <li key={r.index} className={r.ok ? "ok" : "err"}>
+                  <b>{r.recipientName || `送り先${r.index + 1}`}</b>
+                  {r.ok
+                    ? <> — 下書き注文 {r.draftOrderName} を作成しました　<a href={r.draftOrderUrl} target="_blank" rel="noopener noreferrer">Shopifyで開く ↗</a></>
+                    : <> — 失敗: {r.error}</>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {history && history.length > 0 && (
+        <section className="adm-card" style={{ marginTop: 22 }}>
+          <h3>直近の送信履歴</h3>
+          <table className="adm-table">
+            <thead>
+              <tr><th>日時</th><th>商品</th><th>送り先</th><th>状態</th><th></th></tr>
+            </thead>
+            <tbody>
+              {history.slice(0, 20).map((h) => (
+                <tr key={h.id}>
+                  <td className="t-en" style={{ fontSize: 12, color: "var(--c-text-sub)" }}>
+                    {new Date(h.createdAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </td>
+                  <td style={{ fontSize: 13 }}>{h.productTitle}</td>
+                  <td style={{ fontSize: 13 }}>{h.recipientName}</td>
+                  <td>
+                    {h.status === "success"
+                      ? <span className="pub-tag news" style={{ background: "rgba(6,164,72,0.12)", color: "var(--c-line)" }}>成功</span>
+                      : <span className="pub-tag news" style={{ background: "rgba(184,66,58,0.1)", color: "#b8423a" }}>失敗</span>}
+                  </td>
+                  <td>
+                    {h.shopifyDraftOrderUrl && <a href={h.shopifyDraftOrderUrl} target="_blank" rel="noopener noreferrer">Shopify ↗</a>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+    </AdminPage>
+  );
+}
+
 // ── SNS Status ──────────────────────────────────────────────
 function SnsStatus() {
   const store = useAdminStore();
@@ -1101,6 +1371,7 @@ function AdminApp() {
       case "prices":   return <PriceManager />;
       case "news":     return <NewsManager />;
       case "products": return <ProductManager />;
+      case "orders":   return <OrderManager />;
       case "sns":      return <SnsStatus />;
       default:         return <QuickPost />;
     }

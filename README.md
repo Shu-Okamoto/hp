@@ -67,7 +67,7 @@ npm start
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role キー。サーバ専用 (秘匿)、admin の **書き込みのみ** に使用 | 価格 PUT 時 |
 | `SHOPIFY_STORE_DOMAIN` | `*.myshopify.com` | real 時 |
 | `SHOPIFY_STOREFRONT_TOKEN` | Storefront API 読み取り用トークン | real 時 |
-| `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン | real 時 (POST/DELETE) |
+| `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン（商品作成・贈答注文の下書き作成に使用。要 `write_draft_orders` スコープ） | real 時 (POST/DELETE・贈答注文作成時) |
 | `INSTAGRAM_BUSINESS_ID` | Instagram Graph API のビジネスID | real 時 |
 | `INSTAGRAM_ACCESS_TOKEN` | 長期アクセストークン | real 時 |
 | `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API (Quick Post の broadcast 配信に使用) | LINE 配信時 |
@@ -144,6 +144,7 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
    - `supabase/migrations/005_signature_product.sql` — 看板商品「大吟醸の奈良漬」
    - `supabase/migrations/006_product_images.sql` — `product-images` Storage バケット（商品画像用、public）
    - `supabase/migrations/007_shopify_sync.sql` — `variant_id` / `synced_at` カラム（Shopify 同期用）
+   - `supabase/migrations/008_draft_orders.sql` — `hp.draft_orders` テーブル（贈答注文の送信ログ）
 5. Vercel → Environment Variables に上記 3 つを追加 → **Redeploy**。
 6. 動作確認:
    - `/admin → 価格管理` で値を変更 → `/price` で反映
@@ -167,6 +168,26 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
 - handle が一致する行同士を紐づけ。Shopify にだけある商品は末尾に新規追加、こちらにしかない商品 (ローカル専用) は触りません。
 - 同期済み商品には管理画面で緑の「Shopify」バッジが付きます。
 - variant ID が入った商品は、公開側の「カートに入れる」がカート直追加 URL (`/cart/{variant}:1`) に自動昇格します。
+
+### 贈答注文作成（Shopify 下書き注文）
+
+`/admin → 贈答注文作成` から、看板商品（カテゴリが「看板」の商品）を選んで送り主・送り先（複数可）を入力すると、送り先 1 件ごとに Shopify の**下書き注文**を自動作成します。決済・発送はされません。スタッフ・オーナーどちらのロールでも利用できます。
+
+1. Shopify カスタムアプリ（商品同期で作成済みのものを流用可）→ **構成** タブ → **Admin API統合** の「構成」
+2. アクセススコープで以下にチェック:
+   - `write_draft_orders`（下書き注文の作成に必須）
+   - `read_draft_orders`（任意、Shopify 管理画面での確認用）
+3. 保存 → （再）インストール
+4. **APIクレデンシャル** タブ → **Admin API アクセストークン** をコピー（`shpat_` から始まる文字列。この画面でしか表示されないので必ずこの時にコピーする）
+5. Vercel → Environment Variables に設定 → Redeploy:
+   - `SHOPIFY_ADMIN_TOKEN` = 手順4のトークン
+   - `SHOPIFY_STORE_DOMAIN` は商品同期で設定済みのものを共用
+
+動作:
+- 送り先ごとに Shopify Admin API を順番に呼び出し（レート制限対策で約0.6秒間隔）、成功・失敗を `hp.draft_orders` に記録。一部の送り先が失敗しても他の送り先の処理は続行します。
+- 商品が Shopify と同期済み（variant ID あり）ならその商品行で、ローカル専用商品ならカスタム明細（商品名・価格のみ）で下書き注文を作成します。
+- 下書き注文の `billing_address` に送り主、`shipping_address` に送り先を設定（贈答で注文者と届け先が別人になる形をそのまま表現）。
+- 画面下部に直近の送信履歴を表示（Shopify 管理画面への直リンク付き）。
 
 ### LINE 配信を有効にする
 

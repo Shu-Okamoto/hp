@@ -7,8 +7,8 @@
  */
 
 export const ROLE_PAGES = {
-  owner: ["post", "prices", "news", "products", "sns"],
-  staff: ["post", "prices"],
+  owner: ["post", "prices", "news", "products", "orders", "sns"],
+  staff: ["post", "prices", "orders"],
 };
 
 export function pagesFor(role) {
