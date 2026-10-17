@@ -632,3 +632,13 @@ img.adm-mini-img {
 /* Order preview + history table also get a touch-friendlier bump. */
 .adm-order-form + .adm-card .adm-table td,
 .adm-order-form + .adm-card .adm-table th { padding: 10px 8px; }
+
+/* 郵便番号オートフィルのインライン状態表示 */
+.adm-zip-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+.adm-zip-hint.is-ok { color: var(--c-line); }
+.adm-zip-hint.is-warn { color: #b8423a; }

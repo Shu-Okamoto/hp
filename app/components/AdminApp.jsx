@@ -13,6 +13,7 @@ import MikawaAPI from "../lib/api";
 import * as Auth from "../lib/auth";
 import { formatPriceMessage, todayHeadline } from "../lib/format-price-message";
 import { nameInitial } from "../lib/veggie-badge";
+import { lookupZip } from "../lib/zipcloud";
 
 function useAdminStore() {
   const [s, setS] = useState(() => MikawaAPI.getState());
@@ -1103,8 +1104,13 @@ function OrderManager() {
 
   const product = products?.find((p) => p.handle === handle) || null;
 
+  // patch は { ...fields } の他、(prevRecipient) => ({ ...fields }) の
+  // 関数形式も受け付ける。郵便番号検索は非同期で結果が返るため、
+  // その時点の最新値 (ユーザーが検索中にさらに手入力した内容) を
+  // 元に合成しないと入力内容を上書きしてしまう。
   const updateRecipient = (id, patch) =>
-    setRecipients((cur) => cur.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    setRecipients((cur) => cur.map((r) =>
+      r.id === id ? { ...r, ...(typeof patch === "function" ? patch(r) : patch) } : r));
   const addRecipient = () => setRecipients((cur) => [...cur, emptyRecipient()]);
   const removeRecipient = (id) =>
     setRecipients((cur) => (cur.length > 1 ? cur.filter((r) => r.id !== id) : cur));
@@ -1114,6 +1120,31 @@ function OrderManager() {
     setRecipients([emptyRecipient()]);
     setResults(null);
     setStatus(null);
+    setZipStatus({});
+  };
+
+  // 郵便番号が7桁揃ったタイミングで住所検索し、都道府県・市区町村を
+  // 自動入力。町域名は「町名・番地」欄に、既存の入力が無いときだけ
+  // 補完する (すでに番地まで入力済みなら上書きしない)。
+  const [zipStatus, setZipStatus] = useState({}); // key -> loading|found|notfound
+  const autofillFromZip = (key, rawZip, apply) => {
+    const digits = String(rawZip || "").replace(/[^\d]/g, "");
+    if (digits.length !== 7) {
+      setZipStatus((s) => { if (!(key in s)) return s; const n = { ...s }; delete n[key]; return n; });
+      return;
+    }
+    setZipStatus((s) => ({ ...s, [key]: "loading" }));
+    lookupZip(digits).then((addr) => {
+      setZipStatus((s) => ({ ...s, [key]: addr ? "found" : "notfound" }));
+      if (addr) apply(addr);
+    });
+  };
+  const ZipHint = ({ zipKey }) => {
+    const st = zipStatus[zipKey];
+    if (!st) return null;
+    if (st === "loading") return <small className="adm-zip-hint">検索中…</small>;
+    if (st === "found") return <small className="adm-zip-hint is-ok">住所を自動入力しました</small>;
+    return <small className="adm-zip-hint is-warn">該当する住所が見つかりませんでした</small>;
   };
 
   const submit = async () => {
@@ -1212,17 +1243,31 @@ function OrderManager() {
           <div className="adm-row">
             <label className="adm-field"><span>郵便番号</span>
               <input className="adm-input" inputMode="numeric" autoComplete="postal-code" value={sender.zip}
-                onChange={(e) => setSender({ ...sender, zip: e.target.value })} placeholder="740-0000" />
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSender((s) => ({ ...s, zip: v }));
+                  autofillFromZip("sender", v, (addr) => setSender((s) => ({
+                    ...s, pref: addr.pref, city: addr.city,
+                    address1: s.address1 || addr.town,
+                  })));
+                }} placeholder="740-0000" />
+              <ZipHint zipKey="sender" />
             </label>
             <label className="adm-field"><span>都道府県</span>
               <input className="adm-input" autoComplete="address-level1" value={sender.pref}
                 onChange={(e) => setSender({ ...sender, pref: e.target.value })} placeholder="山口県" />
             </label>
           </div>
-          <label className="adm-field"><span>市区町村・番地</span>
-            <input className="adm-input" autoComplete="address-line1" value={sender.address1}
-              onChange={(e) => setSender({ ...sender, address1: e.target.value })} placeholder="岩国市尾津町5-11-1" />
-          </label>
+          <div className="adm-row">
+            <label className="adm-field"><span>市区町村</span>
+              <input className="adm-input" autoComplete="address-level2" value={sender.city}
+                onChange={(e) => setSender({ ...sender, city: e.target.value })} placeholder="岩国市" />
+            </label>
+            <label className="adm-field"><span>町名・番地</span>
+              <input className="adm-input" autoComplete="address-line1" value={sender.address1}
+                onChange={(e) => setSender({ ...sender, address1: e.target.value })} placeholder="尾津町5-11-1" />
+            </label>
+          </div>
           <label className="adm-field"><span>建物名・部屋番号</span>
             <input className="adm-input" autoComplete="address-line2" value={sender.address2}
               onChange={(e) => setSender({ ...sender, address2: e.target.value })} placeholder="任意" />
@@ -1247,17 +1292,31 @@ function OrderManager() {
                 <div className="adm-row">
                   <label className="adm-field"><span>郵便番号</span>
                     <input className="adm-input" inputMode="numeric" value={r.zip}
-                      onChange={(e) => updateRecipient(r.id, { zip: e.target.value })} placeholder="740-0000" />
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateRecipient(r.id, { zip: v });
+                        autofillFromZip(r.id, v, (addr) => updateRecipient(r.id, (prev) => ({
+                          pref: addr.pref, city: addr.city,
+                          address1: prev.address1 || addr.town,
+                        })));
+                      }} placeholder="740-0000" />
+                    <ZipHint zipKey={r.id} />
                   </label>
                   <label className="adm-field"><span>都道府県</span>
                     <input className="adm-input" value={r.pref}
                       onChange={(e) => updateRecipient(r.id, { pref: e.target.value })} placeholder="山口県" />
                   </label>
                 </div>
-                <label className="adm-field"><span>市区町村・番地</span>
-                  <input className="adm-input" value={r.city}
-                    onChange={(e) => updateRecipient(r.id, { city: e.target.value })} placeholder="岩国市尾津町5-11-1" />
-                </label>
+                <div className="adm-row">
+                  <label className="adm-field"><span>市区町村</span>
+                    <input className="adm-input" value={r.city}
+                      onChange={(e) => updateRecipient(r.id, { city: e.target.value })} placeholder="岩国市" />
+                  </label>
+                  <label className="adm-field"><span>町名・番地</span>
+                    <input className="adm-input" value={r.address1}
+                      onChange={(e) => updateRecipient(r.id, { address1: e.target.value })} placeholder="尾津町5-11-1" />
+                  </label>
+                </div>
                 <label className="adm-field"><span>建物名・部屋番号</span>
                   <input className="adm-input" value={r.address2}
                     onChange={(e) => updateRecipient(r.id, { address2: e.target.value })} placeholder="任意" />
