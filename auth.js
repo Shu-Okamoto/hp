@@ -26,6 +26,17 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   // trust the configured host (single-app deployment), which keeps
   // /api/auth/* working under custom domains too.
   trustHost: true,
+  // 店頭の共用タブレット運用を想定し、毎回のログインを避けるために
+  // セッションを長めに保持する。JWT セッション (DB 不要) なので
+  // Cookie の有効期限 = ここで決まる。updateAge 以内にアクセスが
+  // あれば maxAge がその都度延長されるので、定期的に使っていれば
+  // 実質ログアウトされない。それでも Cookie が消えれば (プライベート
+  // ブラウジング・手動クリア・別ブラウザ) 再ログインが必要になる。
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 60, // 60日
+    updateAge: 60 * 60 * 24,   // 24時間ごとに有効期限を延長
+  },
   providers: [
     Credentials({
       credentials: {
