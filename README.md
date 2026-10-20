@@ -68,6 +68,7 @@ npm start
 | `SHOPIFY_STORE_DOMAIN` | `*.myshopify.com` | real 時 |
 | `SHOPIFY_STOREFRONT_TOKEN` | Storefront API 読み取り用トークン | real 時 |
 | `SHOPIFY_ADMIN_TOKEN` | Admin API 書込用トークン（商品作成・贈答注文の下書き作成に使用。要 `write_draft_orders` スコープ） | real 時 (POST/DELETE・贈答注文作成時) |
+| `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET` | dev.shopify.com 新ダッシュボードでアプリを作った場合の OAuth 資格情報（`SHOPIFY_ADMIN_TOKEN` を OAuth で取得し直す時のみ使用） | 贈答注文作成セットアップ方法Bの時のみ |
 | `INSTAGRAM_BUSINESS_ID` | Instagram Graph API のビジネスID | real 時 |
 | `INSTAGRAM_ACCESS_TOKEN` | 長期アクセストークン | real 時 |
 | `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API (Quick Post の broadcast 配信に使用) | LINE 配信時 |
@@ -173,7 +174,11 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
 
 `/admin → 贈答注文作成` から、看板商品（カテゴリが「看板」の商品）を選んで送り主・送り先（複数可）を入力すると、送り先 1 件ごとに Shopify の**下書き注文**を自動作成します。決済・発送はされません。スタッフ・オーナーどちらのロールでも利用できます。
 
-1. Shopify カスタムアプリ（商品同期で作成済みのものを流用可）→ **構成** タブ → **Admin API統合** の「構成」
+#### セットアップ方法A — 旧来のカスタムアプリ画面が使える場合
+
+Shopify の管理画面から「設定 → アプリと販売チャネル → アプリを開発」で、昔ながらのシンプルな画面（APIクレデンシャルに `shpat_` から始まる固定トークンが直接表示されるタイプ）が開ける場合はこちら:
+
+1. カスタムアプリ（商品同期で作成済みのものを流用可）→ **構成** タブ → **Admin API統合** の「構成」
 2. アクセススコープで以下にチェック:
    - `write_draft_orders`（下書き注文の作成に必須）
    - `read_draft_orders`（任意、Shopify 管理画面での確認用）
@@ -182,6 +187,27 @@ supabase/migrations/          価格テーブル等のスキーマ SQL（手動�
 5. Vercel → Environment Variables に設定 → Redeploy:
    - `SHOPIFY_ADMIN_TOKEN` = 手順4のトークン
    - `SHOPIFY_STORE_DOMAIN` は商品同期で設定済みのものを共用
+
+#### セットアップ方法B — 新しい dev.shopify.com ダッシュボードの場合
+
+ストアによってはアプリ管理が `dev.shopify.com` の新ダッシュボードに統合されており、方法Aの画面に辿り着けないことがある。この場合、アプリの「APIクレデンシャル」には **クライアントID／クライアントシークレット**（OAuth用）のみが表示され、`shpat_` の静的トークンは表示されない。また「アプリのオートメーショントークン」(`atkn_` で始まる値) は **Shopify CLI 専用で Admin API の認証には使えない**（`401 Invalid API key or access token` になる）ので使わないこと。
+
+この場合は OAuth 認可コードフローを 1 回だけ通して、正規のアクセストークンを取得する:
+
+1. `dev.shopify.com/dashboard` → 該当アプリ → **構成** → Admin API統合で `write_draft_orders` / `read_draft_orders` のスコープを設定し保存
+2. 同じく構成画面で **許可されたリダイレクトURL** に、本番ドメインの OAuth コールバック先を追加:
+   `https://<本番ドメイン>/api/shopify/oauth/callback`
+3. **APIクレデンシャル** タブからクライアントID・クライアントシークレットをコピー
+4. Vercel → Environment Variables に設定 → Redeploy:
+   - `SHOPIFY_CLIENT_ID` = クライアントID
+   - `SHOPIFY_CLIENT_SECRET` = クライアントシークレット
+   - `SHOPIFY_STORE_DOMAIN` は商品同期で設定済みのものを共用
+5. 管理者としてログイン済みの状態で `https://<本番ドメイン>/api/shopify/oauth/install` を開く → Shopify の認可画面が出るので許可
+6. 自動的に `/api/shopify/oauth/callback` に戻り、画面に **アクセストークン**が表示される（この画面でしか表示されないので必ずこの時にコピーする）
+7. そのトークンを Vercel → Environment Variables に設定 → Redeploy:
+   - `SHOPIFY_ADMIN_TOKEN` = 手順6のトークン
+
+このトークンは DB に保存せず、環境変数にコピーするだけの運用（1ストア専用の内部ツールのため）。失効した場合は手順5〜7をもう一度やり直せばよい。
 
 動作:
 - 送り先ごとに Shopify Admin API を順番に呼び出し（レート制限対策で約0.6秒間隔）、成功・失敗を `hp.draft_orders` に記録。一部の送り先が失敗しても他の送り先の処理は続行します。
